@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Alumno</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 700px;
+            margin: 30px auto;
+        }
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 6px;
+            margin-top: 4px;
+        }
+        .acciones {
+            margin-top: 20px;
+        }
+        button {
+            padding: 8px 14px;
+            cursor: pointer;
+        }
+        .btn-guardar {
+            background-color: #2d7be5;
+            color: white;
+            border: none;
+        }
+        .btn-volver {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Editar Alumno</h1>
+    <hr>
+
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label for="nombres">Nombres:</label>
+        <input
+            type="text"
+            id="nombres"
+            name="nombres"
+            value="{{ alumno.nombres }}"
+            required
+        >
+
+        <label for="apellidos">Apellidos:</label>
+        <input
+            type="text"
+            id="apellidos"
+            name="apellidos"
+            value="{{ alumno.apellidos }}"
+            required
+        >
+
+        <label for="fecha_nacimiento">Fecha de nacimiento:</label>
+        <input
+            type="date"
+            id="fecha_nacimiento"
+            name="fecha_nacimiento"
+            value="{{ alumno.fecha_nacimiento }}"
+            required
+        >
+
+        <label for="genero">Género:</label>
+        <select id="genero" name="genero" required>
+            <option value="M" {% if alumno.genero == "M" %}selected{% endif %}>
+                Masculino
+            </option>
+            <option value="F" {% if alumno.genero == "F" %}selected{% endif %}>
+                Femenino
+            </option>
+        </select>
+
+        <label for="categoria_id">Categoría:</label>
+        <select id="categoria_id" name="categoria_id" required>
+            {% for categoria in categorias %}
+                <option
+                    value="{{ categoria.id }}"
+                    {% if categoria.id == alumno.categoria_id %}selected{% endif %}
+                >
+                    {{ categoria.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+        <label>Sucursal</label>
+        <select name="sucursal_id" required>
+        {% for s in sucursales %}
+            <option value="{{ s.id }}"
+            {% if alumno.sucursal_id == s.id %}selected{% endif %}>
+            {{ s.nombre }}
+            </option>
+        {% endfor %}
+        </select>
+
+        <label>
+            <input
+                type="checkbox"
+                name="activo"
+                {% if alumno.activo %}checked{% endif %}
+            >
+            Alumno activo
+        </label>
+
+        <div class="acciones">
+            <button type="submit" class="btn-guardar">
+                Guardar cambios
+            </button>
+
+            <a href="{{ url_for('alumnos.index') }}">
+                <button type="button" class="btn-volver">
+                    Volver
+                </button>
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>

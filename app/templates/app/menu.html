@@ -1,0 +1,74 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Menú principal | Dojo Manager{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-dark bg-dark px-4">
+    <span class="navbar-brand fw-bold">
+        <i class="bi bi-lightning-charge-fill text-warning"></i>
+        Dojo Manager
+    </span>
+
+    <span class="text-white">
+        {{ current_user.username }}
+    </span>
+</nav>
+
+<div class="container py-5">
+
+    <h2 class="mb-4">Menú principal</h2>
+
+    <div class="row g-4">
+
+        <!-- PERFIL -->
+        <div class="col-md-4">
+            <a href="{{ url_for('profile.index') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-person-circle fs-1 text-primary"></i>
+                        <h5 class="mt-3">Mi perfil</h5>
+                        <p class="text-muted">Actualizar datos y contraseña</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- ADMINISTRACIÓN -->
+        {% if current_user.has_role('ADMIN') %}
+        <div class="col-md-4">
+            <a href="{{ url_for('admin.dashboard') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-gear-fill fs-1 text-success"></i>
+                        <h5 class="mt-3">Administración</h5>
+                        <p class="text-muted">Usuarios, roles y control</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- SUCURSALES -->
+        <div class="col-md-4">
+            <a href="{{ url_for('sucursales.index') }}" class="text-decoration-none">
+                <div class="card shadow-sm h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-building fs-1 text-warning"></i>
+                        <h5 class="mt-3">Sucursales</h5>
+                        <p class="text-muted">Gestión de sedes</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    <div class="mt-5">
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
+            <i class="bi bi-box-arrow-right"></i>
+            Cerrar sesión
+        </a>
+    </div>
+
+</div>
+{% endblock %}

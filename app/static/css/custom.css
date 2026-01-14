@@ -1,0 +1,8 @@
+.hero-section {
+  background: linear-gradient(
+      rgba(0, 0, 0, 0.65),
+      rgba(0, 0, 0, 0.65)
+    ),
+    url("../img/hero-dojo.jpg") center/cover no-repeat;
+  padding: 120px 0;
+}

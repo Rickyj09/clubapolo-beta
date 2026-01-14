@@ -1,0 +1,12 @@
+<h2>{{ 'Editar' if role else 'Nuevo' }} Rol</h2>
+
+<form method="post">
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Nombre del rol</label><br>
+  <input name="name" value="{{ role.name if role else '' }}" required>
+  <br><br>
+  <button type="submit">Guardar</button>
+</form>
+
+<br>
+<a href="{{ url_for('admin.roles') }}">Volver</a>

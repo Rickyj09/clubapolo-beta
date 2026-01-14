@@ -1,0 +1,42 @@
+<h1>Usuarios</h1>
+
+<a href="{{ url_for('admin.usuario_nuevo') }}">+ Nuevo usuario</a>
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Usuario</th>
+        <th>Email</th>
+        <th>Roles</th>
+        <th>Activo</th>
+        <th>Acciones</th>
+    </tr>
+
+    {% for u in usuarios %}
+    <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.email }}</td>
+        <td>
+            {% for r in u.roles %}
+                {{ r.name }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </td>
+        <td>{{ 'Sí' if u.is_active else 'No' }}</td>
+        <td>
+            <a href="{{ url_for('admin.usuario_editar', id=u.id) }}">Editar</a>
+            <form method="post"
+                  action="{{ url_for('admin.usuario_eliminar', id=u.id) }}"
+                  style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        onclick="return confirm('¿Eliminar usuario?')">
+                    Eliminar
+                </button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<a href="{{ url_for('admin.dashboard') }}">Volver</a>

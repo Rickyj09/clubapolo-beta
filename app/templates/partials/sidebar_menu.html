@@ -1,0 +1,67 @@
+<div class="text-center mb-4 sidebar-brand">
+    <img src="{{ url_for('static', filename='img/logo_apolo.jpg') }}"
+         alt="Apolo Gym"
+         class="sidebar-logo">
+    <div class="mt-2 fw-bold text-white">Apolo Gym</div>
+</div>
+
+<ul class="nav nav-pills flex-column gap-1">
+
+    <!-- Dashboard (ADMIN y PROFESOR) -->
+    <li class="nav-item">
+        <a href="{{ url_for('admin.dashboard') }}"
+           class="nav-link text-white">
+            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+        </a>
+    </li>
+
+    <!-- ===== SOLO ADMIN ===== -->
+    {% if current_user.has_role("ADMIN") %}
+
+        <li class="nav-item">
+            <a href="{{ url_for('admin.usuarios') }}"
+               class="nav-link text-white">
+                <i class="bi bi-people me-2"></i> Usuarios
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ url_for('admin.roles') }}"
+               class="nav-link text-white">
+                <i class="bi bi-shield-lock me-2"></i> Roles
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ url_for('sucursales.index') }}"
+               class="nav-link text-white">
+                <i class="bi bi-building me-2"></i> Sucursales
+            </a>
+        </li>
+
+    {% endif %}
+
+    <!-- ===== ADMIN + PROFESOR ===== -->
+    {% if current_user.has_role("ADMIN") or current_user.has_role("PROFESOR") %}
+
+        <li class="nav-item">
+            <a href="{{ url_for('alumnos.index') }}"
+               class="nav-link text-white">
+                <i class="bi bi-mortarboard me-2"></i> Alumnos
+            </a>
+        </li>
+
+    {% endif %}
+
+</ul>
+
+<hr class="text-secondary">
+
+<div class="text-white small">
+    {{ current_user.username }}
+</div>
+
+<a href="{{ url_for('auth.logout') }}"
+   class="btn btn-outline-light btn-sm mt-2 w-100">
+    Cerrar sesión
+</a>
