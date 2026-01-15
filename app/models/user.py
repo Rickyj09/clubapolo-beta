@@ -17,11 +17,22 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
 
+    # 🔹 NUEVO: sucursal asignada al profesor
+    sucursal_id = db.Column(
+        db.Integer,
+        db.ForeignKey("sucursales.id"),
+        nullable=True
+    )
+
+    sucursal = db.relationship("Sucursal", backref="profesores")
+
     roles = db.relationship(
         "Role",
         secondary=user_roles,
         back_populates="users"
     )
+
+    must_change_password = db.Column(db.Boolean, default=False)
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
@@ -31,5 +42,3 @@ class User(UserMixin, db.Model):
 
     def has_role(self, role_name: str) -> bool:
         return any(role.name == role_name for role in self.roles)
-
-    must_change_password = db.Column(db.Boolean, default=False)

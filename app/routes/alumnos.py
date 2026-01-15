@@ -6,12 +6,12 @@ from flask import (
     url_for,
     flash
 )
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from app.extensions import db
 from app.models.alumno import Alumno
 from app.models.categoria import Categoria
-from app.models.sucursal import Sucursal   # 🔹 NUEVO
+from app.models.sucursal import Sucursal
 
 # Blueprint
 alumnos_bp = Blueprint(
@@ -26,13 +26,26 @@ alumnos_bp = Blueprint(
 @alumnos_bp.route("/", methods=["GET"])
 @login_required
 def index():
-    alumnos = Alumno.query.order_by(Alumno.id).all()
+
+    # ADMIN: ve todos
+    if current_user.has_role("ADMIN"):
+        alumnos = Alumno.query.order_by(Alumno.id).all()
+
+    # PROFESOR: solo su sucursal
+    elif current_user.has_role("PROFESOR"):
+        alumnos = Alumno.query.filter_by(
+            sucursal_id=current_user.sucursal_id
+        ).order_by(Alumno.id).all()
+
+    else:
+        alumnos = []
+
     total = len(alumnos)
 
     return render_template(
         "alumnos/index.html",
         alumnos=alumnos,
-        total=total
+        total=len(alumnos)
     )
 
 # =========================
@@ -42,22 +55,34 @@ def index():
 @login_required
 def nuevo():
     categorias = Categoria.query.order_by(Categoria.nombre).all()
-    sucursales = Sucursal.query.filter_by(activo=True).order_by(Sucursal.nombre).all()
+
+    # ADMIN puede elegir sucursal
+    if current_user.has_role("ADMIN"):
+        sucursales = Sucursal.query.filter_by(activo=True).order_by(Sucursal.nombre).all()
+
+    # PROFESOR solo su sucursal
+    elif current_user.has_role("PROFESOR"):
+        sucursales = Sucursal.query.filter_by(
+            id=current_user.sucursal_id,
+            activo=True
+        ).all()
+
+    else:
+        flash("No tiene permisos para crear alumnos", "danger")
+        return redirect(url_for("alumnos.index"))
 
     if request.method == "POST":
         categoria_id = request.form.get("categoria_id")
-        sucursal_id = request.form.get("sucursal_id")
+
+        # ADMIN envía sucursal desde el formulario
+        if current_user.has_role("ADMIN"):
+            sucursal_id = request.form.get("sucursal_id")
+        else:
+            # PROFESOR → sucursal fija
+            sucursal_id = current_user.sucursal_id
 
         if not categoria_id:
             flash("Debe seleccionar una categoría", "danger")
-            return render_template(
-                "alumnos/nuevo.html",
-                categorias=categorias,
-                sucursales=sucursales
-            )
-
-        if not sucursal_id:
-            flash("Debe seleccionar una sucursal", "danger")
             return render_template(
                 "alumnos/nuevo.html",
                 categorias=categorias,
@@ -70,7 +95,7 @@ def nuevo():
             fecha_nacimiento=request.form["fecha_nacimiento"],
             genero=request.form["genero"],
             categoria_id=int(categoria_id),
-            sucursal_id=int(sucursal_id),   # 🔹 CLAVE
+            sucursal_id=int(sucursal_id),
             activo=True
         )
 
@@ -93,8 +118,19 @@ def nuevo():
 @login_required
 def editar(id):
     alumno = Alumno.query.get_or_404(id)
+
+    # PROFESOR no puede editar alumnos de otra sucursal
+    if current_user.has_role("PROFESOR") and alumno.sucursal_id != current_user.sucursal_id:
+        flash("No tiene permisos para editar este alumno", "danger")
+        return redirect(url_for("alumnos.index"))
+
     categorias = Categoria.query.order_by(Categoria.nombre).all()
-    sucursales = Sucursal.query.filter_by(activo=True).order_by(Sucursal.nombre).all()
+
+    # ADMIN puede cambiar sucursal
+    if current_user.has_role("ADMIN"):
+        sucursales = Sucursal.query.filter_by(activo=True).order_by(Sucursal.nombre).all()
+    else:
+        sucursales = None  # PROFESOR no ve selector
 
     if request.method == "POST":
         alumno.nombres = request.form["nombres"]
@@ -102,7 +138,10 @@ def editar(id):
         alumno.fecha_nacimiento = request.form["fecha_nacimiento"]
         alumno.genero = request.form["genero"]
         alumno.categoria_id = int(request.form["categoria_id"])
-        alumno.sucursal_id = int(request.form["sucursal_id"])  # 🔹 CLAVE
+
+        if current_user.has_role("ADMIN"):
+            alumno.sucursal_id = int(request.form["sucursal_id"])
+
         alumno.activo = "activo" in request.form
 
         db.session.commit()
@@ -124,6 +163,12 @@ def editar(id):
 @login_required
 def eliminar(id):
     alumno = Alumno.query.get_or_404(id)
+
+    # PROFESOR no puede eliminar alumnos de otra sucursal
+    if current_user.has_role("PROFESOR") and alumno.sucursal_id != current_user.sucursal_id:
+        flash("No tiene permisos para eliminar este alumno", "danger")
+        return redirect(url_for("alumnos.index"))
+
     db.session.delete(alumno)
     db.session.commit()
 

@@ -16,15 +16,27 @@ class Alumno(db.Model):
         nullable=False
     )
 
-    # 🔹 CLAVE FORÁNEA
+    # =========================
+    # SUCURSAL
+    # =========================
     sucursal_id = db.Column(
         db.Integer,
         db.ForeignKey("sucursales.id"),
         nullable=False
     )
 
-    # 🔹 RELACIÓN
     sucursal = db.relationship(
         "Sucursal",
         back_populates="alumnos"
     )
+
+    # =========================
+    # PROFESOR (USER)
+    # =========================
+    profesor_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id"),
+        nullable=True  # para permitir alumnos sin profesor (si lo deseas)
+    )
+
+  

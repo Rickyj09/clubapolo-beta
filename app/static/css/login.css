@@ -1,0 +1,41 @@
+.login-brand {
+    background: linear-gradient(135deg, #111827, #1f2937);
+    padding: 40px;
+}
+
+.login-logo {
+    width: 180px;
+}
+
+.login-card {
+    background: #ffffff;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+    border-radius: 12px;
+}
+
+.login-card input,
+.login-card button {
+    height: 48px;
+}
+
+/* Animaciones base */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-brand {
+  animation: fadeSlideIn 0.8s ease-out;
+}
+
+.login-card {
+  animation: fadeSlideIn 0.6s ease-out;
+}

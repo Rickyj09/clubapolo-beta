@@ -27,37 +27,58 @@
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
+
                 <tbody>
                 {% for u in usuarios %}
                     <tr>
                         <td>{{ u.id }}</td>
                         <td>{{ u.username }}</td>
                         <td>{{ u.email }}</td>
+
+                        <!-- ROLES -->
                         <td>
                             {% for r in u.roles %}
-                                <span class="badge bg-info text-dark">{{ r.nombre }}</span>
+                                <span class="badge bg-info text-dark">
+                                    {{ r.name }}
+                                </span>
                             {% endfor %}
                         </td>
+
+                        <!-- ACTIVO -->
                         <td>
-                            {% if u.activo %}
+                            {% if u.is_active %}
                                 <span class="badge bg-success">Sí</span>
                             {% else %}
                                 <span class="badge bg-secondary">No</span>
                             {% endif %}
                         </td>
+
+                        <!-- ACCIONES -->
                         <td class="text-center">
 
+                            <!-- EDITAR USUARIO -->
                             <a href="{{ url_for('admin.editar_usuario', id=u.id) }}"
-                               class="btn btn-sm btn-warning me-1">
+                               class="btn btn-sm btn-warning me-1"
+                               title="Editar usuario">
                                 <i class="bi bi-pencil"></i>
                             </a>
 
+                            <!-- ASIGNAR SUCURSAL (SOLO PROFESOR ) -->
+                            {% if u.has_role('PROFESOR') %}
+                                <a href="{{ url_for('admin.asignar_sucursal', user_id=u.id) }}"
+                                   class="btn btn-sm btn-info me-1"
+                                   title="Asignar sucursal">
+                                    <i class="bi bi-building"></i>
+                                </a>
+                            {% endif %}
+
+                            <!-- ELIMINAR -->
                             <form method="post"
                                   action="{{ url_for('admin.eliminar_usuario', id=u.id) }}"
                                   class="d-inline"
                                   onsubmit="return confirm('¿Eliminar este usuario?');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button class="btn btn-sm btn-danger">
+                                <button class="btn btn-sm btn-danger" title="Eliminar usuario">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
@@ -66,6 +87,7 @@
                     </tr>
                 {% endfor %}
                 </tbody>
+
             </table>
         </div>
     </div>

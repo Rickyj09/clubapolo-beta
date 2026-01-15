@@ -222,3 +222,39 @@ def usuario_reset_password(id):
         "admin/usuarios/reset_password.html",
         user=user
     )
+
+def admin_required():
+    return current_user.is_authenticated and current_user.has_role("ADMIN")
+
+
+## asignar sucursal
+@admin_bp.route("/usuarios/<int:user_id>/asignar-sucursal", methods=["GET", "POST"])
+@login_required
+def asignar_sucursal(user_id):
+    user = User.query.get_or_404(user_id)
+
+    # Seguridad: solo profesores
+    if not user.has_role("PROFESOR"):
+        flash("Este usuario no es profesor", "danger")
+        return redirect(url_for("admin.usuarios"))
+
+    sucursales = Sucursal.query.filter_by(activo=True).all()
+
+    if request.method == "POST":
+        sucursal_id = request.form.get("sucursal_id")
+
+        if not sucursal_id:
+            flash("Debe seleccionar una sucursal", "danger")
+            return redirect(request.url)
+
+        user.sucursal_id = int(sucursal_id)
+        db.session.commit()
+
+        flash("Sucursal asignada correctamente", "success")
+        return redirect(url_for("admin.usuarios"))
+
+    return render_template(
+        "admin/usuarios/asignar_sucursal.html",
+        user=user,
+        sucursales=sucursales
+    )
