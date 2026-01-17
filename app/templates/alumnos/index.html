@@ -9,12 +9,12 @@
         <h2 class="mb-0">Listado de Alumnos</h2>
         <small class="text-muted">Total alumnos: {{ alumnos|length }}</small>
     </div>
-    {% if current_user.has_role('ADMIN') %}
-    <a href="{{ url_for('alumnos.nuevo') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Nuevo alumno
-    </a>
-    {% endif %}
 
+    {% if current_user.has_role('ADMIN') %}
+        <a href="{{ url_for('alumnos.nuevo') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo alumno
+        </a>
+    {% endif %}
 </div>
 
 <div class="table-responsive">
@@ -30,6 +30,7 @@
                 <th class="text-center">Acciones</th>
             </tr>
         </thead>
+
         <tbody>
         {% for a in alumnos %}
             <tr>
@@ -38,6 +39,7 @@
                 <td>{{ a.apellidos }}</td>
                 <td>{{ a.fecha_nacimiento }}</td>
                 <td>{{ a.genero }}</td>
+
                 <td>
                     {% if a.activo %}
                         <span class="badge bg-success">Sí</span>
@@ -45,27 +47,44 @@
                         <span class="badge bg-secondary">No</span>
                     {% endif %}
                 </td>
-               <td class="text-center">
-    {% if current_user.has_role('ADMIN') %}
-        <a href="{{ url_for('alumnos.editar', id=a.id) }}"
-           class="btn btn-sm btn-warning me-1">
-            <i class="bi bi-pencil"></i>
-        </a>
 
-        <form method="post"
-              action="{{ url_for('alumnos.eliminar', id=a.id) }}"
-              class="d-inline"
-              onsubmit="return confirm('¿Eliminar este alumno?');">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-sm btn-danger">
-                <i class="bi bi-trash"></i>
-            </button>
-        </form>
-    {% else %}
-        <span class="text-muted">—</span>
-    {% endif %}
-    </td>
- 
+                <!-- ACCIONES -->
+                <td class="text-center">
+
+                    <!-- REGISTRAR PAGO (ADMIN + PROFESOR) -->
+                    <a href="{{ url_for('pagos.nuevo', alumno_id=a.id) }}"
+                       class="btn btn-sm btn-success me-1"
+                       title="Registrar pago">
+                        <i class="bi bi-cash"></i>
+                    </a>
+
+                    <a href="{{ url_for('pagos.historial_alumno', alumno_id=a.id) }}"
+                    class="btn btn-sm btn-primary me-1"
+                    title="Ver pagos">
+                        <i class="bi bi-receipt"></i>
+                    </a>
+
+                    {% if current_user.has_role('ADMIN') %}
+                        <!-- EDITAR -->
+                        <a href="{{ url_for('alumnos.editar', id=a.id) }}"
+                           class="btn btn-sm btn-warning me-1"
+                           title="Editar alumno">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+
+                        <!-- ELIMINAR -->
+                        <form method="post"
+                              action="{{ url_for('alumnos.eliminar', id=a.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('¿Eliminar este alumno?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-danger" title="Eliminar alumno">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    {% endif %}
+
+                </td>
             </tr>
         {% endfor %}
         </tbody>

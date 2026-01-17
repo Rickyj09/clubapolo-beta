@@ -1,0 +1,45 @@
+{% extends "base_admin.html" %}
+{% block title %}Registrar participación{% endblock %}
+
+{% block content %}
+<h3>Registrar participación</h3>
+
+<p class="text-muted">
+    {{ alumno.nombres }} {{ alumno.apellidos }}
+</p>
+
+<form method="POST">
+
+    <div class="mb-3">
+        <label class="form-label">Torneo</label>
+        <select name="torneo_id" class="form-select" required>
+            <option value="">-- Seleccione torneo --</option>
+            {% for t in torneos %}
+            <option value="{{ t.id }}">
+                {{ t.nombre }} ({{ t.fecha.strftime("%d/%m/%Y") }})
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Medalla</label>
+        <select name="medalla_id" class="form-select">
+            <option value="">Participación</option>
+            {% for m in medallas %}
+            <option value="{{ m.id }}">{{ m.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Observación</label>
+        <textarea name="observacion" class="form-control"></textarea>
+    </div>
+
+    <button class="btn btn-success">Guardar</button>
+    <a href="{{ url_for('alumnos.editar', id=alumno.id) }}"
+       class="btn btn-secondary">Cancelar</a>
+
+</form>
+{% endblock %}

@@ -15,6 +15,14 @@
         </a>
     </li>
 
+    <li>
+        <a href="{{ url_for('torneos.index') }}"
+            class="nav-link text-white">
+                <i class="bi bi-trophy"></i> Torneos
+        </a>
+    </li>
+
+
     <!-- ===== SOLO ADMIN ===== -->
     {% if current_user.has_role("ADMIN") %}
 

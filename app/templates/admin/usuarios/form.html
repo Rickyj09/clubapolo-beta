@@ -1,3 +1,8 @@
+{% extends "base_admin.html" %}
+{% block title %} Usuario {% endblock %}
+
+{% block content %}
+
 <h1>{{ 'Editar usuario' if user else 'Nuevo usuario' }}</h1>
 
 <form method="post">
@@ -27,3 +32,4 @@
 </form>
 
 <a href="{{ url_for('admin.usuarios') }}">Volver</a>
+{% endblock %}

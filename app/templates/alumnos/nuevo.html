@@ -1,3 +1,8 @@
+{% extends "base_admin.html" %}
+{% block title %}Nuevo alumno{% endblock %}
+
+{% block content %}
+
 <h2>Nuevo Alumno</h2>
 
 {% if error %}
@@ -45,3 +50,5 @@
 </form>
 
 <a href="{{ url_for('alumnos.index') }}">Volver</a>
+
+{% endblock %}

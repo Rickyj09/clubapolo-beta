@@ -1,0 +1,38 @@
+{% extends "base_admin.html" %}
+{% block title %}Torneos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+    <h3>Torneos</h3>
+    <a href="{{ url_for('torneos.nuevo') }}" class="btn btn-success">
+        + Nuevo torneo
+    </a>
+</div>
+
+<table class="table table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Ciudad</th>
+            <th>Fecha</th>
+            <th>Organizador</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in torneos %}
+        <tr>
+            <td>{{ t.nombre }}</td>
+            <td>{{ t.ciudad or "—" }}</td>
+            <td>{{ t.fecha.strftime("%d/%m/%Y") }}</td>
+            <td>{{ t.organizador or "—" }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4" class="text-center text-muted">
+                No hay torneos registrados
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
