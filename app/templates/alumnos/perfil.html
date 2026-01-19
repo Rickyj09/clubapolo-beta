@@ -38,38 +38,53 @@
             </li>
         </ul>
 
-        <h5 class="mb-3">🏆 Historial de torneos</h5>
+       <h5 class="mb-3">🏆 Historial deportivo</h5>
 
-        {% if participaciones %}
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Torneo</th>
-                    <th>Fecha</th>
-                    <th>Ciudad</th>
-                    <th>Resultado</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in participaciones %}
-                <tr>
-                    <td>{{ p.torneo.nombre }}</td>
-                    <td>{{ p.torneo.fecha.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ p.torneo.ciudad }}</td>
-                    <td>
-                        {% if p.medalla %}
-                            🥇 {{ p.medalla.nombre }}
-                        {% else %}
-                            Participación
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-            <p class="text-muted">Este alumno aún no tiene participaciones registradas.</p>
-        {% endif %}
+{% if participaciones %}
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>Torneo</th>
+            <th>Fecha</th>
+            <th>Modalidad</th>
+            <th>Categoría</th>
+            <th>Resultado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in participaciones %}
+        <tr>
+            <td>{{ p.torneo.nombre }}</td>
+            <td>{{ p.torneo.fecha.strftime('%d/%m/%Y') }}</td>
+            <td>
+                <span class="badge bg-primary">
+                    {{ p.modalidad }}
+                </span>
+            </td>
+            <td>
+                {% if p.categoria %}
+                    {{ p.categoria.nombre }}
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if p.medalla %}
+                    🏅 {{ p.medalla.nombre }}
+                {% else %}
+                    Participación
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-muted">
+    Este alumno aún no registra participaciones en torneos.
+</p>
+{% endif %}
+
 
         <div class="mt-4">
             <a href="{{ url_for('participaciones.nuevo', alumno_id=alumno.id) }}"

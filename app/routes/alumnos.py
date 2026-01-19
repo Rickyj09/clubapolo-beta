@@ -154,10 +154,20 @@ def editar(id):
         flash("Alumno actualizado correctamente", "success")
         return redirect(url_for("alumnos.index"))
 
+    participaciones = (
+    db.session.query(Participacion)
+    .join(Torneo, Torneo.id == Participacion.torneo_id)
+    .outerjoin(Medalla, Medalla.id == Participacion.medalla_id)
+    .filter(Participacion.alumno_id == alumno.id)
+    .order_by(Torneo.fecha.desc())
+    .all()
+    )
+
     return render_template(
         "alumnos/editar.html",
         alumno=alumno,
-        grados=grados
+        grados=grados,
+        participaciones=participaciones
     )
 
 # =========================
@@ -197,13 +207,14 @@ def perfil(id):
             return redirect(url_for("alumnos.index"))
 
     participaciones = (
-        Participacion.query
-        .join(Torneo)
-        .outerjoin(Medalla)
-        .filter(Participacion.alumno_id == alumno.id)
-        .order_by(Torneo.fecha.desc())
-        .all()
+    db.session.query(Participacion)
+    .join(Torneo, Torneo.id == Participacion.torneo_id)
+    .outerjoin(Medalla, Medalla.id == Participacion.medalla_id)
+    .filter(Participacion.alumno_id == alumno.id)
+    .order_by(Torneo.fecha.desc())
+    .all()
     )
+
 
     return render_template(
         "alumnos/perfil.html",

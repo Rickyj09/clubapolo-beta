@@ -99,27 +99,39 @@
 </div>
 
 <!-- HISTORIAL DE TORNEOS -->
-<h4 class="mb-3">🏆 Historial deportivo</h4>
+<h5 class="mb-3">🏆 Historial deportivo</h5>
 
 {% if participaciones %}
-<table class="table table-striped">
-    <thead class="table-dark">
+<table class="table table-striped align-middle">
+    <thead>
         <tr>
             <th>Torneo</th>
             <th>Fecha</th>
-            <th>Ciudad</th>
-            <th>Medalla</th>
+            <th>Modalidad</th>
+            <th>Categoría</th>
+            <th>Resultado</th>
         </tr>
     </thead>
     <tbody>
         {% for p in participaciones %}
         <tr>
             <td>{{ p.torneo.nombre }}</td>
-            <td>{{ p.torneo.fecha.strftime("%d/%m/%Y") }}</td>
-            <td>{{ p.torneo.ciudad }}</td>
+            <td>{{ p.torneo.fecha.strftime('%d/%m/%Y') }}</td>
+            <td>
+                <span class="badge bg-primary">
+                    {{ p.modalidad }}
+                </span>
+            </td>
+            <td>
+                {% if p.categoria %}
+                    {{ p.categoria.nombre }}
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </td>
             <td>
                 {% if p.medalla %}
-                    🥇 {{ p.medalla.nombre }}
+                    🏅 {{ p.medalla.nombre }}
                 {% else %}
                     Participación
                 {% endif %}
@@ -129,7 +141,10 @@
     </tbody>
 </table>
 {% else %}
-<p class="text-muted">Este alumno aún no registra participaciones en torneos.</p>
+<p class="text-muted">
+    Este alumno aún no registra participaciones en torneos.
+</p>
 {% endif %}
+
 
 {% endblock %}

@@ -3,12 +3,12 @@
 
 {% block content %}
 <h3>Registrar participación</h3>
-
 <p class="text-muted">
     {{ alumno.nombres }} {{ alumno.apellidos }}
 </p>
 
 <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="mb-3">
         <label class="form-label">Torneo</label>
@@ -33,13 +33,26 @@
     </div>
 
     <div class="mb-3">
+        <label class="form-label">Modalidad</label>
+        <select name="modalidad" class="form-select" required>
+            <option value="">-- Seleccione modalidad --</option>
+            <option value="POOMSAE">POOMSAE</option>
+            <option value="COMBATE">COMBATE</option>
+            <option value="AMBAS">AMBAS</option>
+        </select>
+    </div>
+
+
+
+    <div class="mb-3">
         <label class="form-label">Observación</label>
         <textarea name="observacion" class="form-control"></textarea>
     </div>
 
-    <button class="btn btn-success">Guardar</button>
+    <button type="submit" class="btn btn-success">Guardar</button>
     <a href="{{ url_for('alumnos.editar', id=alumno.id) }}"
-       class="btn btn-secondary">Cancelar</a>
-
+       class="btn btn-secondary ms-2">
+        Cancelar
+    </a>
 </form>
 {% endblock %}

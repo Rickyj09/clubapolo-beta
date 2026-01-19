@@ -7,11 +7,19 @@ class Participacion(db.Model):
 
     alumno_id = db.Column(db.Integer, db.ForeignKey("alumnos.id"), nullable=False)
     torneo_id = db.Column(db.Integer, db.ForeignKey("torneos.id"), nullable=False)
-    medalla_id = db.Column(db.Integer, db.ForeignKey("medallas.id"))
+    medalla_id = db.Column(db.Integer, db.ForeignKey("medallas.id"), nullable=True)
 
-    categoria = db.Column(db.String(50))  # poomsae, combate, exhibición
-    observacion = db.Column(db.String(200))
+    categoria_id = db.Column(
+        db.Integer,
+        db.ForeignKey("categorias_competencia.id"),
+        nullable=False
+    )
 
+    modalidad = db.Column(db.String(10), nullable=False)  # POOMSAE / COMBATE
+    observacion = db.Column(db.String(255))
+
+    # Relaciones
     alumno = db.relationship("Alumno", backref="participaciones")
     torneo = db.relationship("Torneo")
     medalla = db.relationship("Medalla")
+    categoria = db.relationship("CategoriaCompetencia")

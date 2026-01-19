@@ -9,6 +9,7 @@ from .Grado import Grado
 from app.models.medalla import Medalla
 from app.models.participacion import Participacion
 from app.models.torneo import Torneo
+from app.models.categoriascompetencia import CategoriaCompetencia
 
 
 
