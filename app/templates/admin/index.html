@@ -1,0 +1,96 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Usuarios{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Usuarios</h2>
+        <a href="{{ url_for('admin.nuevo_usuario') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Nuevo usuario
+        </a>
+    </div>
+
+    <!-- TABLA -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Roles</th>
+                        <th>Activo</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for u in usuarios %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+
+                        <!-- ROLES -->
+                        <td>
+                            {% for r in u.roles %}
+                                <span class="badge bg-info text-dark">
+                                    {{ r.name }}
+                                </span>
+                            {% endfor %}
+                        </td>
+
+                        <!-- ACTIVO -->
+                        <td>
+                            {% if u.is_active %}
+                                <span class="badge bg-success">Sí</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- ACCIONES -->
+                        <td class="text-center">
+
+                            <!-- EDITAR USUARIO -->
+                            <a href="{{ url_for('admin.editar_usuario', id=u.id) }}"
+                               class="btn btn-sm btn-warning me-1"
+                               title="Editar usuario">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <!-- ASIGNAR SUCURSAL (SOLO PROFESOR ) -->
+                            {% if u.has_role('PROFESOR') %}
+                                <a href="{{ url_for('admin.asignar_sucursal', user_id=u.id) }}"
+                                   class="btn btn-sm btn-info me-1"
+                                   title="Asignar sucursal">
+                                    <i class="bi bi-building"></i>
+                                </a>
+                            {% endif %}
+
+                            <!-- ELIMINAR -->
+                            <form method="post"
+                                  action="{{ url_for('admin.eliminar_usuario', id=u.id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('¿Eliminar este usuario?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-danger" title="Eliminar usuario">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

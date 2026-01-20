@@ -1,0 +1,31 @@
+{% extends "base_admin.html" %}
+{% block title %}Pagos{% endblock %}
+
+{% block content %}
+<h2>Pagos registrados</h2>
+
+<table class="table table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Alumno</th>
+            <th>Mes</th>
+            <th>Año</th>
+            <th>Monto</th>
+            <th>Fecha</th>
+            <th>Método</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in pagos %}
+        <tr>
+            <td>{{ p.alumno.nombres }} {{ p.alumno.apellidos }}</td>
+            <td>{{ p.mes }}</td>
+            <td>{{ p.anio }}</td>
+            <td>${{ p.monto }}</td>
+            <td>{{ p.fecha_pago }}</td>
+            <td>{{ p.metodo }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

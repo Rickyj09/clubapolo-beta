@@ -1,0 +1,36 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Dashboard</h1>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h5>Alumnos</h5>
+                <h2>{{ total_alumnos }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h5>Sucursales</h5>
+                <h2>{{ total_sucursales }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h5>Usuarios</h5>
+                <h2>{{ total_usuarios }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

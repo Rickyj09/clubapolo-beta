@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ 'Editar' if modo == 'editar' else 'Nuevo' }} Alumno</title>
+</head>
+<body>
+
+<h1>{{ 'Editar' if modo == 'editar' else 'Nuevo' }} Alumno</h1>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Nombres</label><br>
+    <input type="text" name="nombres" required
+           value="{{ alumno.nombres if alumno else '' }}"><br><br>
+
+    <label>Apellidos</label><br>
+    <input type="text" name="apellidos" required
+           value="{{ alumno.apellidos if alumno else '' }}"><br><br>
+
+    <label>Fecha de nacimiento</label><br>
+    <input type="date" name="fecha_nacimiento" required
+           value="{{ alumno.fecha_nacimiento }}"><br><br>
+
+    <label>Género</label><br>
+    <select name="genero">
+        <option value="">-- Seleccione --</option>
+        <option value="M" {% if alumno and alumno.genero=='M' %}selected{% endif %}>Masculino</option>
+        <option value="F" {% if alumno and alumno.genero=='F' %}selected{% endif %}>Femenino</option>
+    </select><br><br>
+
+    <label>Categoría</label><br>
+    <select name="categoria_id">
+        <option value="">-- Ninguna --</option>
+        {% for c in categorias %}
+            <option value="{{ c.id }}"
+                {% if alumno and alumno.categoria_id == c.id %}selected{% endif %}>
+                {{ c.nombre }}
+            </option>
+        {% endfor %}
+    </select><br><br>
+
+    <button type="submit">Guardar</button>
+</form>
+
+<a href="{{ url_for('alumnos.index') }}">Volver</a>
+
+</body>
+</html>

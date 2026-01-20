@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil{% endblock %}
+
+{% block content %}
+<h3>Mi perfil</h3>
+
+<p><strong>Usuario:</strong> {{ user.username }}</p>
+<p><strong>Email:</strong> {{ user.email }}</p>
+
+<hr>
+
+<h5>Cambiar contraseña</h5>
+
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="mb-3">
+    <input type="password" name="current_password" class="form-control" placeholder="Contraseña actual" required>
+  </div>
+  <div class="mb-3">
+    <input type="password" name="new_password" class="form-control" placeholder="Nueva contraseña" required>
+  </div>
+  <div class="mb-3">
+    <input type="password" name="confirm_password" class="form-control" placeholder="Confirmar nueva contraseña" required>
+  </div>
+
+  <button class="btn btn-success">Guardar</button>
+</form>
+{% endblock %}

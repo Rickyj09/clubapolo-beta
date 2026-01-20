@@ -1,0 +1,35 @@
+{% extends "base_admin.html" %}
+{% block title %} Usuario {% endblock %}
+
+{% block content %}
+
+<h1>{{ 'Editar usuario' if user else 'Nuevo usuario' }}</h1>
+
+<form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Usuario</label><br>
+    <input name="username" value="{{ user.username if user else '' }}" required><br>
+
+    <label>Email</label><br>
+    <input name="email" value="{{ user.email if user else '' }}" required><br>
+
+    {% if not user %}
+    <label>Contraseña</label><br>
+    <input type="password" name="password" required><br>
+    {% endif %}
+
+    <label>Roles</label><br>
+    {% for r in roles %}
+        <input type="checkbox"
+               name="roles"
+               value="{{ r.id }}"
+               {% if user and r in user.roles %}checked{% endif %}>
+        {{ r.name }}<br>
+    {% endfor %}
+
+    <br>
+    <button type="submit">Guardar</button>
+</form>
+
+<a href="{{ url_for('admin.usuarios') }}">Volver</a>
+{% endblock %}

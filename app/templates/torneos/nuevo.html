@@ -1,0 +1,35 @@
+{% extends "base_admin.html" %}
+{% block title %}Registrar torneo{% endblock %}
+
+{% block content %}
+<h3 class="mb-4">Registrar torneo</h3>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="mb-3">
+        <label class="form-label">Nombre</label>
+        <input type="text" name="nombre" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Ciudad</label>
+        <input type="text" name="ciudad" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Fecha</label>
+        <input type="date" name="fecha" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Organizador</label>
+        <input type="text" name="organizador" class="form-control">
+    </div>
+
+    <button class="btn btn-success">Guardar</button>
+    <a href="{{ url_for('torneos.index') }}" class="btn btn-secondary ms-2">
+        Cancelar
+    </a>
+</form>
+{% endblock %}

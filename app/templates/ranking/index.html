@@ -1,0 +1,39 @@
+{% extends "base_admin.html" %}
+{% block title %}Ranking General{% endblock %}
+
+{% block content %}
+<h3 class="mb-4">🏆 Ranking General del Club</h3>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Alumno</th>
+            <th>🥇 Oro</th>
+            <th>🥈 Plata</th>
+            <th>🥉 Bronce</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for fila in ranking %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>
+                <strong>
+                    {{ fila.Alumno.nombres }} {{ fila.Alumno.apellidos }}
+                </strong>
+            </td>
+            <td>{{ fila.oros }}</td>
+            <td>{{ fila.platas }}</td>
+            <td>{{ fila.bronces }}</td>
+            <td>{{ fila.total }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if not ranking %}
+<p class="text-muted">Aún no hay datos para el ranking.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Usuarios{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Usuarios</h2>
+        <a href="{{ url_for('admin.usuario_nuevo') }}" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Nuevo usuario
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Roles</th>
+                        <th>Activo</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for u in usuarios %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>
+                            {% for r in u.roles %}
+                                <span class="badge bg-info text-dark">{{ r.name }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if u.activo %}
+                                <span class="badge bg-success">Sí</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('admin.usuario_editar', id=u.id) }}"
+                               class="btn btn-sm btn-warning"
+                               title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <a href="{{ url_for('admin.usuario_reset_password', id=u.id) }}"
+                               class="btn btn-sm btn-info"
+                               title="Reset password">
+                                <i class="bi bi-key"></i>
+                            </a>
+
+                            <form method="post"
+                                  action="{{ url_for('admin.usuario_eliminar', id=u.id) }}"
+                                  class="d-inline">
+                                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-danger"
+                                        onclick="return confirm('¿Eliminar usuario?')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+/* ===== HERO / SLIDER ===== */
+.hero-img {
+  height: 75vh;              /* Altura del slider (ajustable) */
+  max-height: 700px;         /* Límite en pantallas grandes */
+  object-fit: cover;         /* Recorta sin deformar */
+  object-position: center;   /* Centra la imagen */
+  filter: brightness(0.6);   /* Oscurece para leer texto */
+}
+
+/* ===== LOGO GLOBAL ===== */
+.app-logo {
+    max-width: 48px;
+    max-height: 48px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
+
+/* LOGO SIDEBAR */
+.sidebar-logo {
+    max-width: 140px;     /* tamaño controlado */
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* CONTENEDOR DEL LOGO */
+.sidebar-brand {
+    padding: 1rem 0;
+    overflow: hidden;    /* CLAVE */
+}
+
+
+
+/* Ajuste para mobile */
+@media (max-width: 768px) {
+  .hero-img {
+    height: 50vh;
+  }
+
+  .carousel-caption h1 {
+    font-size: 1.8rem;
+  }
+
+  .carousel-caption p {
+    font-size: 1rem;
+  }
+}
