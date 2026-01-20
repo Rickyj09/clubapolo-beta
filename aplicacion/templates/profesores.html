@@ -1,0 +1,105 @@
+
+
+
+{% extends "layout1.html" %}
+{% block title %}APOLO{% endblock %}
+{% block content %}
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Experiencia deportiva</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <style>
+    .image-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .image-card img {
+      transition: transform 0.3s;
+    }
+
+    .image-card:hover img {
+      transform: scale(1.2);
+    }
+
+    .image-card .card-body {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+
+  
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="image-card">
+          <img src="/static/img/imagen11.jpg" alt="Imagen 1" class="img-fluid">
+          <div class="card-body">
+            <h5 class="card-title">Maestro Mario Pinto</h5>
+            <p class="card-text">Resumen de la experiencia</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="image-card">
+          <img src="/static/img/profetaty.jpg" alt="Imagen 2" class="img-fluid">
+          <div class="card-body">
+            <h5 class="card-title">Instructora Tatiana Suarez</h5>
+            <p class="card-text">Resumen de la experiencia 2.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="image-card">
+          <img src="/static/img/imagen5.jpg" alt="Imagen 3" class="img-fluid">
+          <div class="card-body">
+            <h5 class="card-title">Instructora</h5>
+            <p class="card-text">Resumen de la experiencia 3.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="image-card">
+          <img src="/static/img/imagen6.jpg" alt="Imagen 4" class="img-fluid">
+          <div class="card-body">
+            <h5 class="card-title">Instructora</h5>
+            <p class="card-text">Resumen de la experiencia 4.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="image-card">
+          <img src="/static/img/imagen5.jpg" alt="Imagen 5" class="img-fluid">
+          <div class="card-body">
+            <h5 class="card-title">Instructora</h5>
+            <p class="card-text">Resumen de la experiencia 5.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="image-card">
+          <img src="/static/img/imagen10.jpg" alt="Imagen 6" class="img-fluid">
+          <div class="card-body">
+            <h5 class="card-title">Instructora</h5>
+            <p class="card-text">Resumen de la experiencia 6.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+            
+  </div>
+</body>
+</html>
+{% endblock %}
