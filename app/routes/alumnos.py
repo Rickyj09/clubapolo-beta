@@ -21,6 +21,9 @@ from app.models.participacion import Participacion
 from app.models.torneo import Torneo
 from app.models.medalla import Medalla
 
+# 🔍 Auditoría
+from app.utils.auditoria import registrar_auditoria
+
 
 # Blueprint
 alumnos_bp = Blueprint(
@@ -66,6 +69,7 @@ def nuevo():
 
     if current_user.has_role("ADMIN"):
         sucursales = Sucursal.query.filter_by(activo=True).order_by(Sucursal.nombre).all()
+
     elif current_user.has_role("PROFESOR"):
         sucursales = Sucursal.query.filter_by(
             id=current_user.sucursal_id,
@@ -100,7 +104,23 @@ def nuevo():
         db.session.add(alumno)
         db.session.commit()
 
-        # 📸 FOTO (DESPUÉS de crear el alumno)
+        # 🔍 AUDITORÍA - CREACIÓN
+        registrar_auditoria(
+            accion="CREATE",
+            entidad="ALUMNO",
+            entidad_id=alumno.id,
+            descripcion="Creación de alumno",
+            datos_despues={
+                "nombres": alumno.nombres,
+                "apellidos": alumno.apellidos,
+                "fecha_nacimiento": str(alumno.fecha_nacimiento),
+                "genero": alumno.genero,
+                "categoria_id": alumno.categoria_id,
+                "sucursal_id": alumno.sucursal_id
+            }
+        )
+
+        # 📸 FOTO
         archivo = request.files.get("foto")
         if archivo and archivo.filename:
             nombre_archivo = secure_filename(archivo.filename)
@@ -129,9 +149,26 @@ def nuevo():
 def editar(id):
 
     alumno = Alumno.query.get_or_404(id)
+
+    # Seguridad por sucursal
+    if current_user.has_role("PROFESOR"):
+        if alumno.sucursal_id != current_user.sucursal_id:
+            flash("No tiene permisos para editar este alumno", "danger")
+            return redirect(url_for("alumnos.index"))
+
     grados = Grado.query.filter_by(activo=True).order_by(Grado.orden).all()
 
     if request.method == "POST":
+
+        # 🔍 DATOS ANTES
+        datos_antes = {
+            "nombres": alumno.nombres,
+            "apellidos": alumno.apellidos,
+            "peso": alumno.peso,
+            "flexibilidad": alumno.flexibilidad,
+            "grado_id": alumno.grado_id,
+            "foto": alumno.foto
+        }
 
         alumno.nombres = request.form["nombres"]
         alumno.apellidos = request.form["apellidos"]
@@ -151,16 +188,34 @@ def editar(id):
             alumno.foto = nombre_archivo
 
         db.session.commit()
+
+        # 🔍 AUDITORÍA - EDICIÓN
+        registrar_auditoria(
+            accion="UPDATE",
+            entidad="ALUMNO",
+            entidad_id=alumno.id,
+            descripcion="Edición de alumno",
+            datos_antes=datos_antes,
+            datos_despues={
+                "nombres": alumno.nombres,
+                "apellidos": alumno.apellidos,
+                "peso": alumno.peso,
+                "flexibilidad": alumno.flexibilidad,
+                "grado_id": alumno.grado_id,
+                "foto": alumno.foto
+            }
+        )
+
         flash("Alumno actualizado correctamente", "success")
         return redirect(url_for("alumnos.index"))
 
     participaciones = (
-    db.session.query(Participacion)
-    .join(Torneo, Torneo.id == Participacion.torneo_id)
-    .outerjoin(Medalla, Medalla.id == Participacion.medalla_id)
-    .filter(Participacion.alumno_id == alumno.id)
-    .order_by(Torneo.fecha.desc())
-    .all()
+        db.session.query(Participacion)
+        .join(Torneo, Torneo.id == Participacion.torneo_id)
+        .outerjoin(Medalla, Medalla.id == Participacion.medalla_id)
+        .filter(Participacion.alumno_id == alumno.id)
+        .order_by(Torneo.fecha.desc())
+        .all()
     )
 
     return render_template(
@@ -179,9 +234,23 @@ def eliminar(id):
 
     alumno = Alumno.query.get_or_404(id)
 
-    if current_user.has_role("PROFESOR") and alumno.sucursal_id != current_user.sucursal_id:
-        flash("No tiene permisos para eliminar este alumno", "danger")
-        return redirect(url_for("alumnos.index"))
+    if current_user.has_role("PROFESOR"):
+        if alumno.sucursal_id != current_user.sucursal_id:
+            flash("No tiene permisos para eliminar este alumno", "danger")
+            return redirect(url_for("alumnos.index"))
+
+    # 🔍 AUDITORÍA - ELIMINACIÓN (ANTES)
+    registrar_auditoria(
+        accion="DELETE",
+        entidad="ALUMNO",
+        entidad_id=alumno.id,
+        descripcion=f"Eliminación de alumno {alumno.nombres} {alumno.apellidos}",
+        datos_antes={
+            "nombres": alumno.nombres,
+            "apellidos": alumno.apellidos,
+            "sucursal_id": alumno.sucursal_id
+        }
+    )
 
     db.session.delete(alumno)
     db.session.commit()
@@ -189,32 +258,28 @@ def eliminar(id):
     flash("Alumno eliminado correctamente", "success")
     return redirect(url_for("alumnos.index"))
 
-
-##=================
-## campeonatos
-##================
-
+# =========================
+# PERFIL / HISTORIAL
+# =========================
 @alumnos_bp.route("/<int:id>/perfil")
 @login_required
 def perfil(id):
 
     alumno = Alumno.query.get_or_404(id)
 
-    # Seguridad por sucursal
     if current_user.has_role("PROFESOR"):
         if alumno.sucursal_id != current_user.sucursal_id:
             flash("No tiene acceso a este alumno", "danger")
             return redirect(url_for("alumnos.index"))
 
     participaciones = (
-    db.session.query(Participacion)
-    .join(Torneo, Torneo.id == Participacion.torneo_id)
-    .outerjoin(Medalla, Medalla.id == Participacion.medalla_id)
-    .filter(Participacion.alumno_id == alumno.id)
-    .order_by(Torneo.fecha.desc())
-    .all()
+        db.session.query(Participacion)
+        .join(Torneo, Torneo.id == Participacion.torneo_id)
+        .outerjoin(Medalla, Medalla.id == Participacion.medalla_id)
+        .filter(Participacion.alumno_id == alumno.id)
+        .order_by(Torneo.fecha.desc())
+        .all()
     )
-
 
     return render_template(
         "alumnos/perfil.html",

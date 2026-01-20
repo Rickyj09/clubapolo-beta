@@ -1,73 +1,84 @@
 from datetime import date
+from app.models.categoriascompetencia import CategoriaCompetencia
 
-from app.models.categoriascompetencia import CategoriaCompetencia  # ajusta al nombre real del archivo/modelo
 
-
-def calcular_edad(fecha_nacimiento: date, fecha_referencia: date) -> int:
+def calcular_edad(fecha_nacimiento, fecha_referencia):
     edad = fecha_referencia.year - fecha_nacimiento.year
-    if (fecha_referencia.month, fecha_referencia.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
+    if (fecha_referencia.month, fecha_referencia.day) < (
+        fecha_nacimiento.month,
+        fecha_nacimiento.day
+    ):
         edad -= 1
     return edad
 
 
-def normalizar_sexo(genero: str) -> str:
+def obtener_categoria_competencia(*, alumno, torneo, modalidad):
     """
-    Devuelve 'M' o 'F' a partir de valores típicos:
-    'M', 'F', 'Masculino', 'Femenino', 'Hombre', 'Mujer', etc.
+    Retorna UNA CategoriaCompetencia válida o None
     """
-    if not genero:
-        return ""
-    g = genero.strip().lower()
-    if g in ("m", "masculino", "hombre", "varon", "varón"):
-        return "M"
-    if g in ("f", "femenino", "mujer", "dama"):
-        return "F"
-    return ""
 
-
-def obtener_categoria_competencia(alumno, torneo, modalidad: str):
-    """
-    - POOMSAE: edad + sexo + grado_id
-    - COMBATE: edad + sexo + peso
-    """
-    if not alumno or not torneo or not modalidad:
-        return None
-
-    modalidad = modalidad.strip().upper()
-    if modalidad not in ("POOMSAE", "COMBATE"):
-        return None
-
-    sexo = normalizar_sexo(getattr(alumno, "genero", None))
-    if sexo not in ("M", "F"):
-        return None
-
-    if not getattr(alumno, "fecha_nacimiento", None):
-        return None
-
+    # =========================
+    # DATOS BASE
+    # =========================
     edad = calcular_edad(alumno.fecha_nacimiento, torneo.fecha)
+    sexo = alumno.genero
+    peso = alumno.peso or 0
 
-    q = (
-        CategoriaCompetencia.query
-        .filter_by(activo=True, modalidad=modalidad, sexo=sexo)
-        .filter(CategoriaCompetencia.edad_min <= edad)
-        .filter(CategoriaCompetencia.edad_max >= edad)
+    # 🔑 regla de negocio
+    if modalidad == "COMBATE":
+        grado_id = 99  # grado técnico
+    else:
+        grado_id = alumno.grado_id
+
+    print("DEBUG CATEGORIA")
+    print("Alumno:", alumno.id, sexo, edad, alumno.fecha_nacimiento)
+    print("Torneo:", torneo.id, torneo.fecha)
+    print("Modalidad:", modalidad)
+    print("Grado usado:", grado_id)
+    print("Peso:", peso)
+
+    # =========================
+    # QUERY BASE
+    # =========================
+    query = CategoriaCompetencia.query.filter(
+        CategoriaCompetencia.modalidad == modalidad,
+        CategoriaCompetencia.sexo == sexo,
+        CategoriaCompetencia.grado_id == grado_id,
+        CategoriaCompetencia.activo == 1,
+        CategoriaCompetencia.edad_min <= edad,
+        CategoriaCompetencia.edad_max >= edad
     )
 
-    if modalidad == "POOMSAE":
-        # exige grado
-        if not getattr(alumno, "grado_id", None):
-            return None
-        q = q.filter(CategoriaCompetencia.grado_id == alumno.grado_id)
-
+    # =========================
+    # FILTRO POR MODALIDAD
+    # =========================
     if modalidad == "COMBATE":
-        # exige peso
-        peso = getattr(alumno, "peso", None)
-        if peso is None:
-            return None
-        q = (
-            q.filter(CategoriaCompetencia.peso_min <= float(peso))
-             .filter(CategoriaCompetencia.peso_max >= float(peso))
+        query = query.filter(
+            CategoriaCompetencia.peso_min <= peso,
+            CategoriaCompetencia.peso_max >= peso
         )
 
-    # Si existiera más de una coincidencia, toma la más específica (normalmente única)
-    return q.order_by(CategoriaCompetencia.id.asc()).first()
+    elif modalidad == "POOMSAE":
+        # poomsae NO usa peso → no filtrar peso
+        pass
+
+    else:
+        print("❌ Modalidad no soportada:", modalidad)
+        return None
+
+    categoria = query.first()
+
+    # =========================
+    # VALIDACIÓN FINAL
+    # =========================
+    if not categoria:
+        print("❌ CATEGORIA NO ENCONTRADA")
+        print("Buscado:")
+        print(
+            f"modalidad={modalidad}, sexo={sexo}, edad={edad}, "
+            f"grado_id={grado_id}, peso={peso}"
+        )
+        return None
+
+    print("✅ Categoria encontrada:", categoria.id, categoria.nombre)
+    return categoria

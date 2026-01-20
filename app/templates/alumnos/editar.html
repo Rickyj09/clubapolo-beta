@@ -91,12 +91,16 @@
 <hr class="my-4">
 
 <!-- BOTÓN REGISTRAR PARTICIPACIÓN -->
+{% if current_user.has_role('ADMIN')
+      or (current_user.has_role('PROFESOR') and alumno.sucursal_id == current_user.sucursal_id) %}
+
 <div class="d-flex justify-content-end mb-3">
     <a href="{{ url_for('participaciones.nuevo', alumno_id=alumno.id) }}"
        class="btn btn-outline-primary">
         ➕ Registrar participación en torneo
     </a>
 </div>
+{% endif %}
 
 <!-- HISTORIAL DE TORNEOS -->
 <h5 class="mb-3">🏆 Historial deportivo</h5>
@@ -145,6 +149,5 @@
     Este alumno aún no registra participaciones en torneos.
 </p>
 {% endif %}
-
 
 {% endblock %}

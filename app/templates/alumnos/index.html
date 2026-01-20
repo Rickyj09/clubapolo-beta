@@ -51,7 +51,7 @@
                 <!-- ACCIONES -->
                 <td class="text-center">
 
-                    <!-- REGISTRAR PAGO (ADMIN + PROFESOR) -->
+                    <!-- PAGOS (ADMIN + PROFESOR) -->
                     <a href="{{ url_for('pagos.nuevo', alumno_id=a.id) }}"
                        class="btn btn-sm btn-success me-1"
                        title="Registrar pago">
@@ -59,20 +59,22 @@
                     </a>
 
                     <a href="{{ url_for('pagos.historial_alumno', alumno_id=a.id) }}"
-                    class="btn btn-sm btn-primary me-1"
-                    title="Ver pagos">
+                       class="btn btn-sm btn-primary me-1"
+                       title="Ver pagos">
                         <i class="bi bi-receipt"></i>
                     </a>
 
-                    {% if current_user.has_role('ADMIN') %}
-                        <!-- EDITAR -->
+                    <!-- EDITAR (ADMIN + PROFESOR) -->
+                    {% if current_user.has_role('ADMIN') or current_user.has_role('PROFESOR') %}
                         <a href="{{ url_for('alumnos.editar', id=a.id) }}"
                            class="btn btn-sm btn-warning me-1"
                            title="Editar alumno">
                             <i class="bi bi-pencil"></i>
                         </a>
+                    {% endif %}
 
-                        <!-- ELIMINAR -->
+                    <!-- ELIMINAR (SOLO ADMIN) -->
+                    {% if current_user.has_role('ADMIN') %}
                         <form method="post"
                               action="{{ url_for('alumnos.eliminar', id=a.id) }}"
                               class="d-inline"
