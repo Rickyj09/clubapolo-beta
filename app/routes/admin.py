@@ -4,6 +4,8 @@ from app.extensions import db
 ##from app.auth.decorators import admin_required
 from app.models import User,Role, Alumno,Sucursal
 from sqlalchemy import func
+from datetime import date, datetime
+from app.models import Asistencia
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -255,6 +257,96 @@ def asignar_sucursal(user_id):
 
     return render_template(
         "admin/usuarios/asignar_sucursal.html",
-        user=user,
+        usuario=user,
         sucursales=sucursales
     )
+
+@admin_bp.route("/asistencias", methods=["GET"])
+@login_required
+def asistencias():
+    if not current_user.has_role("ADMIN") and not current_user.has_role("PROFESOR"):
+        abort(403)
+
+    # fecha filtro
+    fecha_str = request.args.get("fecha")
+    fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date() if fecha_str else date.today()
+
+    # sucursal: profesor bloqueado a su sucursal
+    if current_user.has_role("PROFESOR"):
+        if not current_user.sucursal_id:
+            flash("Tu usuario no tiene sucursal asignada. Pide al admin que te la asigne.", "danger")
+            return redirect(url_for("admin.dashboard"))
+        sucursal_id = current_user.sucursal_id
+    else:
+        sucursal_id = request.args.get("sucursal_id", type=int)
+
+    sucursales = Sucursal.query.filter_by(activo=True).order_by(Sucursal.nombre).all()
+
+    # si no elige sucursal (ADMIN), solo muestra pantalla para seleccionar
+    if not sucursal_id:
+        return render_template(
+            "admin/asistencias/index.html",
+            fecha=fecha,
+            sucursal_id=None,
+            sucursales=sucursales,
+            alumnos=[],
+            asistencias_map={}
+        )
+
+    # alumnos de la sucursal
+    alumnos = Alumno.query.filter_by(sucursal_id=sucursal_id).order_by(Alumno.apellidos, Alumno.nombres).all()
+
+    # asistencias existentes del día
+    asistencias = Asistencia.query.filter_by(fecha=fecha, sucursal_id=sucursal_id).all()
+    asistencias_map = {a.alumno_id: a for a in asistencias}
+
+    return render_template(
+        "admin/asistencias/index.html",
+        fecha=fecha,
+        sucursal_id=sucursal_id,
+        sucursales=sucursales,
+        alumnos=alumnos,
+        asistencias_map=asistencias_map
+    )
+
+@admin_bp.route("/asistencias/guardar", methods=["POST"])
+@login_required
+def asistencias_guardar():
+    if not current_user.has_role("ADMIN") and not current_user.has_role("PROFESOR"):
+        abort(403)
+
+    fecha = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()
+    sucursal_id = int(request.form["sucursal_id"])
+
+    # profesor: validar que sea su sucursal
+    if current_user.has_role("PROFESOR") and current_user.sucursal_id != sucursal_id:
+        abort(403)
+
+    # Recibimos estado por alumno: estado_<id>
+    # Ej: estado_15 = P/A/T/J
+    alumnos = Alumno.query.filter_by(sucursal_id=sucursal_id).all()
+    for al in alumnos:
+        key = f"estado_{al.id}"
+        estado = request.form.get(key, "A")  # default ausente si no llega
+
+        # upsert por unique constraint (fecha, alumno_id, sucursal_id)
+        asistencia = Asistencia.query.filter_by(
+            fecha=fecha, alumno_id=al.id, sucursal_id=sucursal_id
+        ).first()
+
+        if asistencia:
+            asistencia.estado = estado
+            asistencia.registrado_por_id = current_user.id
+        else:
+            asistencia = Asistencia(
+                fecha=fecha,
+                alumno_id=al.id,
+                sucursal_id=sucursal_id,
+                estado=estado,
+                registrado_por_id=current_user.id
+            )
+            db.session.add(asistencia)
+
+    db.session.commit()
+    flash("Asistencia guardada correctamente.", "success")
+    return redirect(url_for("admin.asistencias", fecha=fecha.strftime("%Y-%m-%d"), sucursal_id=sucursal_id))

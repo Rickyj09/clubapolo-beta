@@ -20,6 +20,8 @@ from app.models.Grado import Grado
 from app.models.participacion import Participacion
 from app.models.torneo import Torneo
 from app.models.medalla import Medalla
+from datetime import date
+from app.models.asistencia import Asistencia
 
 # 🔍 Auditoría
 from app.utils.auditoria import registrar_auditoria
@@ -180,10 +182,7 @@ def editar(id):
         archivo = request.files.get("foto")
         if archivo and archivo.filename:
             nombre_archivo = secure_filename(archivo.filename)
-            ruta = os.path.join(
-                current_app.config["UPLOAD_FOLDER"],
-                nombre_archivo
-            )
+            ruta = os.path.join(current_app.config["UPLOAD_FOLDER"], nombre_archivo)
             archivo.save(ruta)
             alumno.foto = nombre_archivo
 
@@ -209,6 +208,9 @@ def editar(id):
         flash("Alumno actualizado correctamente", "success")
         return redirect(url_for("alumnos.index"))
 
+    # =========================
+    # PARTICIPACIONES (ya lo tenías)
+    # =========================
     participaciones = (
         db.session.query(Participacion)
         .join(Torneo, Torneo.id == Participacion.torneo_id)
@@ -218,11 +220,50 @@ def editar(id):
         .all()
     )
 
+    # =========================
+    # ASISTENCIAS (NUEVO)
+    # =========================
+    hoy = date.today()
+
+    asistencia_hoy = None
+    historial_asistencias = []
+
+    if alumno.sucursal_id:
+        asistencia_hoy = Asistencia.query.filter_by(
+            fecha=hoy,
+            sucursal_id=alumno.sucursal_id,
+            alumno_id=alumno.id
+        ).first()
+
+        hoy = date.today()
+
+        asistencia_hoy = Asistencia.query.filter_by(
+                alumno_id=alumno.id,
+                sucursal_id=alumno.sucursal_id,
+                fecha=hoy
+            ).first()
+
+        historial_asistencias = (
+            Asistencia.query
+            .join(Sucursal, Sucursal.id == Asistencia.sucursal_id)
+            .filter(
+                Asistencia.alumno_id == alumno.id,
+                Asistencia.sucursal_id == alumno.sucursal_id
+            )
+            .order_by(Asistencia.fecha.desc())
+            .limit(10)
+            .all()
+)
+
     return render_template(
         "alumnos/editar.html",
         alumno=alumno,
         grados=grados,
-        participaciones=participaciones
+        participaciones=participaciones,
+        # variables para el bloque asistencia
+        fecha_asistencia=hoy.isoformat(),
+        asistencia=asistencia_hoy,
+        historial_asistencias=historial_asistencias
     )
 
 # =========================

@@ -1,0 +1,89 @@
+{% extends "base_admin.html" %}
+{% block title %}Asistencias{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Asistencias</h2>
+  </div>
+
+  <!-- FILTRO -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label">Fecha</label>
+          <input type="date" name="fecha" class="form-control" value="{{ fecha.strftime('%Y-%m-%d') }}">
+        </div>
+
+        <div class="col-md-5">
+          <label class="form-label">Sucursal</label>
+          <select name="sucursal_id" class="form-select" {% if current_user.has_role('PROFESOR') %}disabled{% endif %}>
+            <option value="">-- Seleccione --</option>
+            {% for s in sucursales %}
+              <option value="{{ s.id }}" {% if sucursal_id==s.id %}selected{% endif %}>{{ s.nombre }}</option>
+            {% endfor %}
+          </select>
+          {% if current_user.has_role('PROFESOR') %}
+            <input type="hidden" name="sucursal_id" value="{{ sucursal_id }}">
+          {% endif %}
+        </div>
+
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100" type="submit">Cargar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if not sucursal_id %}
+    <div class="alert alert-info">Seleccione una sucursal para cargar alumnos.</div>
+  {% else %}
+
+  <!-- GUARDAR ASISTENCIAS -->
+  <form method="post" action="{{ url_for('admin.asistencias_guardar') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="fecha" value="{{ fecha.strftime('%Y-%m-%d') }}">
+    <input type="hidden" name="sucursal_id" value="{{ sucursal_id }}">
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="text-muted">Total alumnos: {{ alumnos|length }}</div>
+          <button class="btn btn-success" type="submit">Guardar asistencia</button>
+        </div>
+
+        <table class="table table-striped align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Alumno</th>
+              <th style="width: 170px;">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for a in alumnos %}
+            {% set asis = asistencias_map.get(a.id) %}
+            <tr>
+              <td>{{ a.apellidos }} {{ a.nombres }}</td>
+              <td>
+                <select class="form-select form-select-sm" name="estado_{{ a.id }}">
+                  <option value="P" {% if asis and asis.estado=='P' %}selected{% endif %}>Presente</option>
+                  <option value="A" {% if (asis and asis.estado=='A') or (not asis) %}selected{% endif %}>Ausente</option>
+                  <option value="T" {% if asis and asis.estado=='T' %}selected{% endif %}>Tarde</option>
+                  <option value="J" {% if asis and asis.estado=='J' %}selected{% endif %}>Justificado</option>
+                </select>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </form>
+
+  {% endif %}
+</div>
+{% endblock %}

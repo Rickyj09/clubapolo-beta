@@ -64,6 +64,11 @@
                         <i class="bi bi-receipt"></i>
                     </a>
 
+                    <a href="{{ url_for('alumnos.editar', id=a.id) }}#asistencia"
+                        class="btn btn-sm btn-info me-1"
+                        title="Asistencia">
+                        <i class="bi bi-calendar-check"></i>
+                    </a>
                     <!-- EDITAR (ADMIN + PROFESOR) -->
                     {% if current_user.has_role('ADMIN') or current_user.has_role('PROFESOR') %}
                         <a href="{{ url_for('alumnos.editar', id=a.id) }}"

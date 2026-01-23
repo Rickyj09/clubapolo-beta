@@ -18,7 +18,7 @@ from app.routes.pagos import pagos_bp
 from app.routes.participaciones import participaciones_bp
 from app.routes.torneos import torneos_bp
 from app.routes.ranking import ranking_bp
-
+from app.routes.asistencias import asistencias_bp
 
 
 @login_manager.user_loader
@@ -75,7 +75,9 @@ def create_app():
     app.register_blueprint(participaciones_bp)
     app.register_blueprint(torneos_bp)
     app.register_blueprint(ranking_bp)
+    app.register_blueprint(asistencias_bp)
 
+    
       # 🔹 CONTEXTO GLOBAL (AQUÍ)
     @app.context_processor
     def inject_academia():
