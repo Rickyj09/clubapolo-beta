@@ -8,12 +8,9 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads", "alumnos")
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-cambiar-en-produccion")
-    WTF_CSRF_ENABLED = True
-
-    SQLALCHEMY_DATABASE_URI = (
-        "mysql+pymysql://dojo_user:dojo1234@localhost:3306/dojo_manager"
-    )
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
       # 🔐 Seguridad de sesión
@@ -25,4 +22,3 @@ class Config:
     REMEMBER_COOKIE_SECURE = False  # TRUE en HTTPS
     REMEMBER_COOKIE_DURATION = 86400
 
-    

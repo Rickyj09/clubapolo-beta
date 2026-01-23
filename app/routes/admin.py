@@ -255,6 +255,6 @@ def asignar_sucursal(user_id):
 
     return render_template(
         "admin/usuarios/asignar_sucursal.html",
-        user=user,
+        usuario=user,
         sucursales=sucursales
     )

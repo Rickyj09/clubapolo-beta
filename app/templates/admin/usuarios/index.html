@@ -55,7 +55,11 @@
                                title="Reset password">
                                 <i class="bi bi-key"></i>
                             </a>
-
+                            <a href="{{ url_for('admin.asignar_sucursal', user_id=u.id) }}"
+                                   class="btn btn-sm btn-info me-1"
+                                   title="Asignar sucursal">
+                                    <i class="bi bi-building"></i>
+                            </a>
                             <form method="post"
                                   action="{{ url_for('admin.usuario_eliminar', id=u.id) }}"
                                   class="d-inline">
