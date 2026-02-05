@@ -9,6 +9,10 @@ class Grado(db.Model):
     orden = db.Column(db.Integer, nullable=False)       # Para ordenar
     color = db.Column(db.String(20))                    # white, yellow, black
     activo = db.Column(db.Boolean, default=True)
+     # NUEVO (solo para DAN)
+    federacion = db.Column(db.String(10), nullable=True)   # FETKD | ITF
+    dan_num = db.Column(db.Integer, nullable=True)         # 1,2,3...
+
 
     def __repr__(self):
         return f"<Grado {self.nombre}>"

@@ -100,6 +100,7 @@ def nuevo():
             genero=request.form["genero"],
             categoria_id=int(categoria_id),
             sucursal_id=int(sucursal_id),
+            numero_identidad=request.form.get("numero_identidad") or None,
             activo=True
         )
 
@@ -166,6 +167,7 @@ def editar(id):
         datos_antes = {
             "nombres": alumno.nombres,
             "apellidos": alumno.apellidos,
+            "numero_identidad": alumno.numero_identidad,
             "peso": alumno.peso,
             "flexibilidad": alumno.flexibilidad,
             "grado_id": alumno.grado_id,
@@ -174,6 +176,7 @@ def editar(id):
 
         alumno.nombres = request.form["nombres"]
         alumno.apellidos = request.form["apellidos"]
+        alumno.numero_identidad = request.form.get("numero_identidad") or None  
         alumno.peso = request.form.get("peso") or None
         alumno.flexibilidad = request.form.get("flexibilidad")
         alumno.grado_id = request.form.get("grado_id") or None
@@ -198,6 +201,7 @@ def editar(id):
             datos_despues={
                 "nombres": alumno.nombres,
                 "apellidos": alumno.apellidos,
+                "numero_identidad": alumno.numero_identidad,
                 "peso": alumno.peso,
                 "flexibilidad": alumno.flexibilidad,
                 "grado_id": alumno.grado_id,

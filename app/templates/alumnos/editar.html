@@ -25,70 +25,97 @@
             <small class="text-muted">Foto del alumno</small>
         </div>
 
-        <!-- DATOS -->
-        <div class="col-md-8">
+     <!-- DATOS -->
+<div class="col-md-8">
 
-            <div class="mb-3">
-                <label>Nombres</label>
-                <input type="text" name="nombres"
-                       class="form-control"
-                       value="{{ alumno.nombres }}" required>
-            </div>
+  <div class="mb-3">
+    <label class="form-label">Nombres</label>
+    <input type="text" name="nombres"
+           class="form-control"
+           value="{{ alumno.nombres }}" required>
+  </div>
 
-            <div class="mb-3">
-                <label>Apellidos</label>
-                <input type="text" name="apellidos"
-                       class="form-control"
-                       value="{{ alumno.apellidos }}" required>
-            </div>
+  <div class="mb-3">
+    <label class="form-label">Apellidos</label>
+    <input type="text" name="apellidos"
+           class="form-control"
+           value="{{ alumno.apellidos }}" required>
+  </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label>Peso (kg)</label>
-                    <input type="number" step="0.1"
-                           name="peso"
-                           class="form-control"
-                           value="{{ alumno.peso or '' }}">
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label>Flexibilidad</label>
-                    <select name="flexibilidad" class="form-select">
-                        <option value="">-- Seleccione --</option>
-                        <option value="Baja" {{ 'selected' if alumno.flexibilidad=='Baja' }}>Baja</option>
-                        <option value="Media" {{ 'selected' if alumno.flexibilidad=='Media' }}>Media</option>
-                        <option value="Alta" {{ 'selected' if alumno.flexibilidad=='Alta' }}>Alta</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label>Grado (cinturón)</label>
-                <select name="grado_id" class="form-select">
-                    <option value="">-- Seleccione grado --</option>
-                    {% for g in grados %}
-                        <option value="{{ g.id }}"
-                          {% if alumno.grado_id == g.id %}selected{% endif %}>
-                          {{ g.nombre }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <button class="btn btn-primary">
-                <i class="bi bi-save"></i> Guardar cambios
-            </button>
-
-            <a href="{{ url_for('alumnos.index') }}"
-               class="btn btn-secondary ms-2">
-                Cancelar
-            </a>
-
-        </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Número de identidad</label>
+      <input type="text"
+             name="numero_identidad"
+             class="form-control"
+             value="{{ alumno.numero_identidad or '' }}"
+             maxlength="20"
+             placeholder="Ej: 1712345678">
+      <small class="text-muted">Cédula / Pasaporte (opcional por ahora)</small>
     </div>
-</form>
 
-<hr class="my-4">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Peso (kg)</label>
+      <input type="number" step="0.1"
+             name="peso"
+             class="form-control"
+             value="{{ alumno.peso or '' }}">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Flexibilidad</label>
+      <select name="flexibilidad" class="form-select">
+        <option value="">-- Seleccione --</option>
+        <option value="Baja" {{ 'selected' if alumno.flexibilidad=='Baja' }}>Baja</option>
+        <option value="Media" {{ 'selected' if alumno.flexibilidad=='Media' }}>Media</option>
+        <option value="Alta" {{ 'selected' if alumno.flexibilidad=='Alta' }}>Alta</option>
+      </select>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Grado (cinturón)</label>
+      <select name="grado_id" class="form-select">
+        <option value="">-- Seleccione grado --</option>
+
+        <optgroup label="Cinturones (KUP)">
+          {% for g in grados if g.tipo == 'KUP' %}
+            <option value="{{ g.id }}" {% if alumno.grado_id == g.id %}selected{% endif %}>
+              {{ g.nombre }}
+            </option>
+          {% endfor %}
+        </optgroup>
+
+        <optgroup label="Negros DAN - FETKD">
+          {% for g in grados if g.tipo == 'DAN' and g.federacion == 'FETKD' %}
+            <option value="{{ g.id }}" {% if alumno.grado_id == g.id %}selected{% endif %}>
+              {{ g.nombre }}
+            </option>
+          {% endfor %}
+        </optgroup>
+
+        <optgroup label="Negros DAN - ITF">
+          {% for g in grados if g.tipo == 'DAN' and g.federacion == 'ITF' %}
+            <option value="{{ g.id }}" {% if alumno.grado_id == g.id %}selected{% endif %}>
+              {{ g.nombre }}
+            </option>
+          {% endfor %}
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <button class="btn btn-primary">
+    <i class="bi bi-save"></i> Guardar cambios
+  </button>
+
+  <a href="{{ url_for('alumnos.index') }}"
+     class="btn btn-secondary ms-2">
+    Cancelar
+  </a>
+
+</div>
 
 <!-- BOTÓN REGISTRAR PARTICIPACIÓN -->
 {% if current_user.has_role('ADMIN')
@@ -222,16 +249,16 @@
                   <td>{{ a.sucursal.nombre if a.sucursal else alumno.sucursal.nombre }}</td>
                   <td>
                     {% if a.estado == 'P' %}
-  <span class="badge bg-success">Presente</span>
-{% elif a.estado == 'A' %}
-  <span class="badge bg-secondary">Ausente</span>
-{% elif a.estado == 'T' %}
-  <span class="badge bg-warning text-dark">Tarde</span>
-{% elif a.estado == 'J' %}
-  <span class="badge bg-info text-dark">Justificado</span>
-{% else %}
-  <span class="badge bg-secondary">—</span>
-{% endif %}
+                <span class="badge bg-success">Presente</span>
+                {% elif a.estado == 'A' %}
+                <span class="badge bg-secondary">Ausente</span>
+                {% elif a.estado == 'T' %}
+                <span class="badge bg-warning text-dark">Tarde</span>
+                {% elif a.estado == 'J' %}
+                <span class="badge bg-info text-dark">Justificado</span>
+                {% else %}
+                <span class="badge bg-secondary">—</span>
+                {% endif %}
                   </td>
                 </tr>
               {% endfor %}

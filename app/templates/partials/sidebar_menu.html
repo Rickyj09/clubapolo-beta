@@ -66,6 +66,35 @@
             </a>
         </li>
 
+         <!-- ✅ REPORTES -->
+        {% if current_user.has_role("ADMIN") or current_user.has_role("PROFESOR") %}
+  <li class="nav-item">
+    <a class="nav-link text-white" data-bs-toggle="collapse" href="#menuReportes" role="button">
+      <i class="bi bi-bar-chart me-2"></i> Reportes
+      <i class="bi bi-chevron-down float-end"></i>
+    </a>
+    <div class="collapse" id="menuReportes">
+      <ul class="nav flex-column ms-3 mt-1">
+        <li class="nav-item">
+          <a class="nav-link text-white-50" href="{{ url_for('reportes.index') }}">
+            <i class="bi bi-table me-2"></i> General
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white-50" href="{{ url_for('reportes.combate') }}">
+            <i class="bi bi-lightning-charge me-2"></i> Combate (Edad/Peso)
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white-50" href="{{ url_for('reportes.poomsae') }}">
+            <i class="bi bi-person-arms-up me-2"></i> Poomsae (Grado/Edad)
+          </a>
+        </li>
+      </ul>
+    </div>
+  </li>
+{% endif %}
+
     {% endif %}
 
 </ul>
