@@ -23,3 +23,18 @@ class Participacion(db.Model):
     torneo = db.relationship("Torneo")
     medalla = db.relationship("Medalla")
     categoria = db.relationship("CategoriaCompetencia")
+    # NUEVO: pago por evento (NO pensión)
+    valor_evento = db.Column(db.Numeric(10, 2), nullable=False, default=0)
+    pagado_evento = db.Column(db.Boolean, nullable=False, default=False)
+    fecha_pago_evento = db.Column(db.Date, nullable=True)
+    metodo_pago_evento = db.Column(db.String(30), nullable=True)
+
+    alumno = db.relationship("Alumno", backref="participaciones")
+    torneo = db.relationship("Torneo")
+    medalla = db.relationship("Medalla")
+    categoria = db.relationship("CategoriaCompetencia")
+
+__table_args__ = (
+    db.UniqueConstraint("torneo_id", "alumno_id", "modalidad",
+                        name="uq_participaciones_torneo_alumno_modalidad"),
+)
