@@ -15,7 +15,7 @@ class Config:
     WTF_CSRF_ENABLED = True
 
     SQLALCHEMY_DATABASE_URI = (
-        "mysql+pymysql://dojo_user:dojo1234@localhost:3306/dojo_manager"
+        'mysql+pymysql://Ricky09J:Md3n8m79@Ricky09J.mysql.pythonanywhere-services.com/Ricky09J$default'
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -28,4 +28,3 @@ class Config:
     REMEMBER_COOKIE_SECURE = False  # TRUE en HTTPS
     REMEMBER_COOKIE_DURATION = 86400
 
-    
