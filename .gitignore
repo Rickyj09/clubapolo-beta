@@ -4,3 +4,8 @@ __pycache__/
 *.pyd
 .mypy_cache/
 .pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+
+app/static/uploads/

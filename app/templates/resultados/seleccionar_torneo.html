@@ -1,0 +1,22 @@
+{% extends "base_admin.html" %}
+{% block content %}
+<div class="container mt-3">
+  <h3>Resultados por categoría</h3>
+  <p>Selecciona el torneo para subir el acta por categoría:</p>
+
+  <div class="list-group">
+    {% for t in torneos %}
+      <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+         href="{{ url_for('resultados.nuevo', torneo_id=t.id) }}">
+        <div>
+          <div class="fw-bold">{{ t.nombre }}</div>
+          <small class="text-muted">
+            {{ t.ciudad or '' }} — {{ t.fecha }}
+          </small>
+        </div>
+        <span class="badge bg-primary">Elegir</span>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

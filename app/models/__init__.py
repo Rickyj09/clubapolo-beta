@@ -12,7 +12,10 @@ from app.models.torneo import Torneo
 from app.models.categoriascompetencia import CategoriaCompetencia
 from app.models.auditoria import Auditoria
 from .asistencia import Asistencia
+from .medalla import Medalla
 
+from .resultado_categoria import ResultadoCategoria
+from .resultado_detalle import ResultadoDetalle
 
 
 

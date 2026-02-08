@@ -20,6 +20,8 @@ from app.routes.torneos import torneos_bp
 from app.routes.ranking import ranking_bp
 from app.routes.asistencias import asistencias_bp
 from app.routes.reportes import reportes_bp
+from app.routes.resultados import resultados_bp
+from app.routes.academias import academias_bp
 
 
 @login_manager.user_loader
@@ -37,7 +39,9 @@ def create_app():
         "uploads",
         "alumnos"
     )
-
+   
+    app.config["ACTAS_UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads", "actas")
+    os.makedirs(app.config["ACTAS_UPLOAD_FOLDER"], exist_ok=True)
     # (opcional pero recomendado)
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     #app.config.from_object(Config)
@@ -78,7 +82,10 @@ def create_app():
     app.register_blueprint(ranking_bp)
     app.register_blueprint(asistencias_bp)
     app.register_blueprint(reportes_bp)
-    
+    app.register_blueprint(resultados_bp)
+    app.register_blueprint(academias_bp)
+
+
       # 🔹 CONTEXTO GLOBAL (AQUÍ)
     @app.context_processor
     def inject_academia():

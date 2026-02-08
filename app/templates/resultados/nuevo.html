@@ -1,0 +1,47 @@
+{% extends "base_admin.html" %}
+{% block content %}
+<div class="container mt-3">
+  <h3>Cargar acta - {{ torneo.nombre }}</h3>
+
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="row">
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Modalidad</label>
+        <select class="form-select" name="modalidad" required>
+          <option value="POOMSAE">POOMSAE</option>
+          <option value="COMBATE">COMBATE</option>
+        </select>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Categoría</label>
+        <select class="form-select" name="categoria_id" required>
+          {% for c in categorias %}
+            <option value="{{ c.id }}">{{ c.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Total competidores</label>
+        <input class="form-control" type="number" name="total_competidores" min="0" value="0">
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Foto del acta</label>
+      <input class="form-control" type="file" name="acta_foto" accept="image/*" capture="environment" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Observación</label>
+      <input class="form-control" name="observacion">
+    </div>
+
+    <button class="btn btn-primary">Continuar</button>
+    <a class="btn btn-secondary" href="{{ url_for('torneos.index') }}">Volver</a>
+  </form>
+</div>
+{% endblock %}

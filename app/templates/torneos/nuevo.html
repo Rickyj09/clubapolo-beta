@@ -5,31 +5,53 @@
 <h3 class="mb-4">Registrar torneo</h3>
 
 <form method="POST">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div class="mb-3">
-        <label class="form-label">Nombre</label>
-        <input type="text" name="nombre" class="form-control" required>
+  <div class="mb-3">
+    <label class="form-label">Nombre</label>
+    <input type="text" name="nombre" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Ciudad</label>
+    <input type="text" name="ciudad" class="form-control">
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Fecha</label>
+    <input type="date" name="fecha" class="form-control" required>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Organizador</label>
+    <input type="text" name="organizador" class="form-control">
+  </div>
+
+  <hr class="my-4">
+
+  <h5 class="mb-3">Costos de inscripción (por evento)</h5>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label class="form-label">Poomsae (USD)</label>
+      <input type="number" step="0.01" min="0" name="precio_poomsae" class="form-control" value="30" required>
+      <small class="text-muted">Valor si participa solo en Poomsae.</small>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Ciudad</label>
-        <input type="text" name="ciudad" class="form-control">
+    <div class="col-md-4 mb-3">
+      <label class="form-label">Combate (USD)</label>
+      <input type="number" step="0.01" min="0" name="precio_combate" class="form-control" value="30" required>
+      <small class="text-muted">Valor si participa solo en Combate.</small>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Fecha</label>
-        <input type="date" name="fecha" class="form-control" required>
+    <div class="col-md-4 mb-3">
+      <label class="form-label">Ambas (USD)</label>
+      <input type="number" step="0.01" min="0" name="precio_ambas" class="form-control" value="40" required>
+      <small class="text-muted">Total final si participa en Poomsae + Combate (ej: 35 o 40).</small>
     </div>
+  </div>
 
-    <div class="mb-3">
-        <label class="form-label">Organizador</label>
-        <input type="text" name="organizador" class="form-control">
-    </div>
-
-    <button class="btn btn-success">Guardar</button>
-    <a href="{{ url_for('torneos.index') }}" class="btn btn-secondary ms-2">
-        Cancelar
-    </a>
+  <button class="btn btn-success">Guardar</button>
+  <a href="{{ url_for('torneos.index') }}" class="btn btn-secondary ms-2">Cancelar</a>
 </form>
 {% endblock %}
