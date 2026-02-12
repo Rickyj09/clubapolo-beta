@@ -13,7 +13,18 @@ class Sucursal(db.Model):
         db.ForeignKey("academias.id"),
         nullable=False
     )
+    resumen_publico = db.Column(db.Text, nullable=True)
+    google_maps_url = db.Column(db.String(500), nullable=True)
+    foto_1 = db.Column(db.String(255), nullable=True)
+    foto_2 = db.Column(db.String(255), nullable=True)
+    foto_3 = db.Column(db.String(255), nullable=True)
+    facebook_url = db.Column(db.String(255))
+    instagram_url = db.Column(db.String(255))
+    youtube_url = db.Column(db.String(255))
+    whatsapp_numero = db.Column(db.String(20), nullable=True)
+    whatsapp_mensaje = db.Column(db.String(255), nullable=True)
 
+    
     # 🔹 RELACIÓN INVERSA
     alumnos = db.relationship(
         "Alumno",

@@ -146,7 +146,10 @@
         <h2 class="fw-bold">Nuestros Instructores</h2>
         <p class="text-muted">
           Profesionales certificados con amplia experiencia en formación y competencia.
-        </p>
+          Más de 30 años de experiencia formando atletas y campeones nacionales.
+          Especialistas en formación infantil y preparación física integral.
+          Experiencia en poomsae, combate y preparación para competencias.
+          </p>
       </div>
     </div>
 
@@ -162,9 +165,6 @@
           <div class="card-body text-center">
             <h5 class="card-title fw-bold">Maestro Mario Pinto</h5>
             <p class="text-muted mb-1">Cinturón Negro 4° Dan</p>
-            <p class="small">
-              Más de 30 años de experiencia formando atletas y campeones nacionales.
-            </p>
           </div>
         </div>
       </div>
@@ -178,9 +178,7 @@
           <div class="card-body text-center">
             <h5 class="card-title fw-bold">Coach Eli Alvarado</h5>
             <p class="text-muted mb-1">Cinturón Negro 1° Dan</p>
-            <p class="small">
-              Especialista en formación infantil y preparación física integral.
-            </p>
+            
           </div>
         </div>
       </div>
@@ -193,10 +191,8 @@
                alt="Instructor">
           <div class="card-body text-center">
             <h5 class="card-title fw-bold">Profesor Edison </h5>
-            <p class="text-muted mb-1">Cinturón Negro 2° Dan</p>
-            <p class="small">
-              Experiencia en poomsae, combate y preparación para competencias.
-            </p>
+            <p class="text-muted mb-1">Cinturón Negro 1° Dan</p>
+            
           </div>
         </div>
       </div>
@@ -225,83 +221,46 @@
   <div class="container">
 
     <!-- Título -->
+    <section id="sucursales" class="py-5">
+  <div class="container">
+
     <div class="row mb-4 text-center">
       <div class="col">
         <h2 class="fw-bold">Nuestras Sucursales</h2>
         <p class="text-muted">
-          Entrena en la sede más cercana a ti. Todas con instructores certificados.
+          Entrena en la sede más cercana a ti.
         </p>
       </div>
     </div>
 
-    <!-- Cards -->
     <div class="row g-4">
 
-      <!-- Sucursal Matriz -->
+      {% for s in sucursales %}
       <div class="col-md-4">
         <div class="card h-100 shadow-sm border-0">
           <div class="card-body">
-            <h5 class="card-title fw-bold">Sucursal Matriz</h5>
-            <p class="mb-1">
-              📍 Av. Principal y Calle Central
-            </p>
-            <p class="mb-2 text-muted small">
-              Horarios: Lunes a Viernes 16:00 – 20:30
-            </p>
-            <a
-              href="https://www.google.com/maps"
-              target="_blank"
-              class="btn btn-outline-primary w-100"
-            >
-              Ver ubicación
-            </a>
-          </div>
-        </div>
-      </div>
+            <h5 class="card-title fw-bold">
+              {{ s.nombre }}
+              {% if s.nombre|lower in ['sucursal principal', 'matriz'] %}
+                <span class="badge bg-primary ms-2">Matriz</span>
+              {% endif %}
+            </h5>
 
-      <!-- Sucursal Norte -->
-      <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0">
-          <div class="card-body">
-            <h5 class="card-title fw-bold">Sucursal Norte</h5>
-            <p class="mb-1">
-              📍 Sector Llano Grande
+            <p class="mb-2">
+              📍 {{ s.direccion or 'Dirección no registrada' }}
             </p>
-            <p class="mb-2 text-muted small">
-              Horarios: Lunes a Viernes 15:30 – 19:30
-            </p>
-            <a
-              href="https://www.google.com/maps"
-              target="_blank"
-              class="btn btn-outline-primary w-100"
-            >
-              Ver ubicación
-            </a>
-          </div>
-        </div>
-      </div>
 
-      <!-- Sucursal Calderón -->
-      <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0">
-          <div class="card-body">
-            <h5 class="card-title fw-bold">Sucursal Calderón</h5>
-            <p class="mb-1">
-              📍 Barrio Calderón Centro
-            </p>
-            <p class="mb-2 text-muted small">
-              Horarios: Martes y Jueves 17:00 – 20:00
-            </p>
             <a
-              href="https://www.google.com/maps"
-              target="_blank"
+              href="{{ url_for('public.sucursal_detalle', sucursal_id=s.id) }}"
               class="btn btn-outline-primary w-100"
             >
-              Ver ubicación
+              Ver sucursal
             </a>
+
           </div>
         </div>
       </div>
+      {% endfor %}
 
     </div>
   </div>
@@ -364,11 +323,11 @@
 
             <p class="mb-2">📍 Quito – Ecuador</p>
             <p class="mb-2">📧 contacto@apologym.com</p>
-            <p class="mb-3">📞 +593 99 999 9999</p>
+            <p class="mb-3">📞 +593960073310</p>
 
             <!-- WhatsApp -->
             <a
-              href="https://wa.me/593999999999"
+              href="https://wa.me/593960073310"
               target="_blank"
               class="btn btn-success w-100 mb-3"
             >
@@ -376,17 +335,30 @@
             </a>
 
             <!-- Redes -->
-            <div class="text-center">
-              <a href="#" class="me-3 text-dark fs-4">
-                <i class="bi bi-facebook"></i>
-              </a>
-              <a href="#" class="me-3 text-dark fs-4">
-                <i class="bi bi-instagram"></i>
-              </a>
-              <a href="#" class="text-dark fs-4">
-                <i class="bi bi-youtube"></i>
-              </a>
-            </div>
+<div class="text-center">
+
+  <a href="https://www.facebook.com/clubapolo"
+     target="_blank"
+     rel="noopener noreferrer"
+     class="me-3 text-dark fs-4">
+    <i class="bi bi-facebook"></i>
+  </a>
+
+  <a href="https://www.instagram.com/clubapolo"
+     target="_blank"
+     rel="noopener noreferrer"
+     class="me-3 text-dark fs-4">
+    <i class="bi bi-instagram"></i>
+  </a>
+
+  <a href="https://www.youtube.com/@clubapolo"
+     target="_blank"
+     rel="noopener noreferrer"
+     class="text-dark fs-4">
+    <i class="bi bi-youtube"></i>
+  </a>
+
+</div>
 
           </div>
         </div>

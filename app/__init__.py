@@ -19,6 +19,8 @@ from app.routes.participaciones import participaciones_bp
 from app.routes.torneos import torneos_bp
 from app.routes.ranking import ranking_bp
 from app.routes.asistencias import asistencias_bp
+from app.routes.kiosk import kiosk_bp
+from app.routes.reportes import reportes_bp
 
 
 @login_manager.user_loader
@@ -50,19 +52,27 @@ def create_app():
     
     @app.after_request
     def security_headers(response):
-        response.headers["X-Frame-Options"] = "DENY"
+    # No bloquees iframes (Google Maps)
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self' https://cdn.jsdelivr.net; "
-            "font-src 'self' https://cdn.jsdelivr.net; "
-            "style-src 'self' https://cdn.jsdelivr.net; "
-            "img-src 'self' data:;"
-        )
-        return response
 
+        response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "base-uri 'self'; "
+        "form-action 'self'; "
+
+        "script-src 'self' https://cdn.jsdelivr.net; "
+        "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+        "font-src 'self' https://cdn.jsdelivr.net data:; "
+        "img-src 'self' data: https:; "
+
+        "connect-src 'self' https://cdn.jsdelivr.net; "
+
+        # Google Maps embed
+        "frame-src https://www.google.com https://maps.google.com; "
+    )
+        return response
     # Registrar blueprints
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)
@@ -76,7 +86,8 @@ def create_app():
     app.register_blueprint(torneos_bp)
     app.register_blueprint(ranking_bp)
     app.register_blueprint(asistencias_bp)
-
+    app.register_blueprint(kiosk_bp)
+    app.register_blueprint(reportes_bp)
     
       # 🔹 CONTEXTO GLOBAL (AQUÍ)
     @app.context_processor

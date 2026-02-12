@@ -67,4 +67,5 @@ class Alumno(db.Model):
     )
 
     grado = db.relationship("Grado", backref="alumnos")
+    academia_id = db.Column(db.Integer, nullable=True)
 

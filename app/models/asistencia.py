@@ -21,10 +21,14 @@ class Asistencia(db.Model):
 
     observacion = db.Column(db.String(255), nullable=True)
 
+    # ✅ OBLIGATORIO porque la BD lo exige (NOT NULL sin default)
+    academia_id = db.Column(db.Integer, nullable=False)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     __table_args__ = (
         db.UniqueConstraint("fecha", "alumno_id", "sucursal_id", name="uq_asistencia_fecha_alumno_sucursal"),
         db.Index("ix_asistencias_fecha_sucursal", "fecha", "sucursal_id"),
+        db.Index("ix_asistencias_academia_fecha", "academia_id", "fecha"),
     )

@@ -1,0 +1,122 @@
+{% extends "base_public.html" %}
+{% block title %}{{ s.nombre }} | Apolo Gym{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+    <div>
+      <h1 class="mb-2">{{ s.nombre }}</h1>
+      <p class="text-muted mb-0">
+        <i class="bi bi-geo-alt"></i> {{ s.direccion or "Dirección por definir" }}
+      </p>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{{ url_for('public.sucursales') }}">
+        ← Volver
+      </a>
+    </div>
+  </div>
+
+  <hr class="my-4">
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Información</h5>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><strong>Dirección:</strong> {{ s.direccion or "Por definir" }}</li>
+            <li class="mb-2"><strong>Estado:</strong> {{ "Activa" if s.activo else "Inactiva" }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Contacto</h5>
+          <p class="text-muted mb-3">Aquí podemos poner WhatsApp y horarios por sucursal.</p>
+          {% set wa = (s.whatsapp_numero or '')|replace('+','')|replace(' ','') %}
+{% if wa %}
+  {% set msg = (s.whatsapp_mensaje or ('Hola, quiero información sobre ' ~ s.nombre)) %}
+  <a class="btn btn-success w-100"
+     target="_blank"
+     href="https://wa.me/{{ wa }}?text={{ msg|urlencode }}">
+    <i class="bi bi-whatsapp"></i> Escribir por WhatsApp
+  </a>
+{% else %}
+  <div class="alert alert-secondary mb-0">
+    WhatsApp no configurado para esta sucursal.
+  </div>
+{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumen -->
+  {% if s.resumen_publico %}
+  <div class="card shadow-sm mt-4">
+    <div class="card-body">
+      <h5 class="card-title">Resumen</h5>
+      <p class="mb-0">{{ s.resumen_publico }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Fotos -->
+  {% set fotos = [s.foto_1, s.foto_2, s.foto_3] %}
+  {% set fotos = fotos | select | list %}
+  {% if fotos %}
+  <div class="card shadow-sm mt-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Galería</h5>
+
+      <div id="sucursalCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          {% for f in fotos %}
+          <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <img
+              src="{{ url_for('static', filename=f) }}"
+              class="d-block w-100"
+              style="object-fit: cover; height: 380px; border-radius: 10px;"
+              alt="Foto sucursal"
+            >
+          </div>
+          {% endfor %}
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#sucursalCarousel" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon"></span>
+          <span class="visually-hidden">Anterior</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#sucursalCarousel" data-bs-slide="next">
+          <span class="carousel-control-next-icon"></span>
+          <span class="visually-hidden">Siguiente</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Mapa (si google_maps_url es SOLO el src) -->
+ {% if s.google_maps_url %}
+<div class="card shadow-sm mt-4">
+  <div class="card-body">
+    <h5 class="card-title mb-3">Ubicación</h5>
+    <div class="ratio ratio-16x9">
+      <iframe
+        src="{{ s.google_maps_url }}"
+        style="border:0;"
+        allowfullscreen
+        loading="lazy"
+        referrerpolicy="origin">
+      </iframe>
+    </div>
+  </div>
+</div>
+{% endif %}
+</div>
+{% endblock %}

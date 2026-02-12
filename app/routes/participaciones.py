@@ -47,6 +47,9 @@ def nuevo(alumno_id):
         # si es AMBAS, se crean dos participaciones (una por modalidad)
         modalidades_a_registrar = ["POOMSAE", "COMBATE"] if modalidad == "AMBAS" else [modalidad]
 
+        valor_evento = request.form.get("valor_evento", "0").strip()
+        valor_evento = float(valor_evento) if valor_evento else 0.0
+
         creadas = 0
         for mod in modalidades_a_registrar:
             categoria = obtener_categoria_competencia(alumno=alumno, torneo=torneo, modalidad=mod)
@@ -68,7 +71,8 @@ def nuevo(alumno_id):
                 modalidad=mod,
                 categoria_id=categoria.id,
                 medalla_id=medalla_fk,
-                observacion=observacion
+                observacion=observacion,
+                valor_evento=valor_evento
             )
             db.session.add(p)
             creadas += 1
