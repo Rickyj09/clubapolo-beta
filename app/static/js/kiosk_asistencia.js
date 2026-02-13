@@ -95,6 +95,20 @@
     const res = await fetch(url);
     const data = await res.json();
 
+    if (data.aviso) {
+      const toastEl = document.getElementById("toastAviso");
+      document.getElementById("toastTitle").innerText = data.aviso.title || "Aviso";
+      document.getElementById("toastBody").innerText = data.aviso.text || "";
+
+  // pintar estilo según tipo
+  toastEl.classList.remove("text-bg-warning", "text-bg-danger");
+  if (data.aviso.type === "danger") toastEl.classList.add("text-bg-danger");
+  else toastEl.classList.add("text-bg-warning");
+
+  const toast = new bootstrap.Toast(toastEl, { delay: 6000 });
+  toast.show();
+}
+
     if (!data.ok) {
       $results.innerHTML = `<div class="text-danger p-3">Error: ${data.error || 'No se pudo buscar'}</div>`;
       return;

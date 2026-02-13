@@ -9,6 +9,7 @@ from app.extensions import db, csrf
 from app.models.alumno import Alumno
 from app.models.sucursal import Sucursal
 from app.models.asistencia import Asistencia
+from app.utils.mensualidad import mensualidad_pagada, aviso_mensualidad
 
 
 kiosk_bp = Blueprint("kiosk", __name__, url_prefix="/kiosk")
@@ -188,9 +189,14 @@ def marcar():
 
     db.session.commit()
 
+        # --- Aviso mensualidad (regla cliente) ---
+    pagada = mensualidad_pagada(alumno_id=alumno.id, sucursal_id=sucursal_id, fecha=fecha)
+    aviso = aviso_mensualidad(fecha, pagada)
+
     return jsonify({
         "ok": True,
         "message": "Asistencia registrada",
+        "aviso": aviso,
         "data": {
             "fecha": fecha.isoformat(),
             "alumno_id": alumno_id,
