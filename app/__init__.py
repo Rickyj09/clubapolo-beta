@@ -58,21 +58,19 @@ def create_app():
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "base-uri 'self'; "
-        "form-action 'self'; "
-
-        "script-src 'self' https://cdn.jsdelivr.net; "
-        "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
-        "font-src 'self' https://cdn.jsdelivr.net data:; "
-        "img-src 'self' data: https:; "
-
-        "connect-src 'self' https://cdn.jsdelivr.net; "
-
-        # Google Maps embed
-        "frame-src https://www.google.com https://maps.google.com; "
-    )
+            "default-src 'self'; "
+            "base-uri 'self'; "
+            "form-action 'self'; "
+            "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+            "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+            "font-src 'self' https://cdn.jsdelivr.net data:; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https://cdn.jsdelivr.net; "
+            "frame-src https://www.google.com https://maps.google.com; "
+        )
         return response
+
+
     # Registrar blueprints
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)

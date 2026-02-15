@@ -16,7 +16,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
-
+    academia_id = db.Column(db.Integer, nullable=False, default=1)
     # 🔹 NUEVO: sucursal asignada al profesor
     sucursal_id = db.Column(
         db.Integer,

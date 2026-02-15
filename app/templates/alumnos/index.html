@@ -7,7 +7,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="mb-0">Listado de Alumnos</h2>
-        <small class="text-muted">Total alumnos: {{ alumnos|length }}</small>
+        <small class="text-muted">Total alumnos: <span id="totalAlumnos">{{ alumnos|length }}</span></small>
     </div>
 
     {% if current_user.has_role('ADMIN') %}
@@ -17,8 +17,24 @@
     {% endif %}
 </div>
 
+<!-- ✅ BUSCADOR RÁPIDO -->
+<div class="row g-2 align-items-center mb-3">
+    <div class="col-sm-8 col-md-6">
+        <input id="alumnosSearch" type="text" class="form-control"
+               placeholder="Buscar por ID, nombres, apellidos o género...">
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-outline-secondary" id="btnLimpiarBusqueda">
+            Limpiar
+        </button>
+    </div>
+    <div class="col-auto">
+        <small class="text-muted">Mostrando: <span id="mostrandoCount">{{ alumnos|length }}</span></small>
+    </div>
+</div>
+
 <div class="table-responsive">
-    <table class="table table-striped align-middle">
+    <table id="tablaAlumnos" class="table table-striped align-middle">
         <thead class="table-dark">
             <tr>
                 <th>ID</th>
@@ -69,6 +85,7 @@
                         title="Asistencia">
                         <i class="bi bi-calendar-check"></i>
                     </a>
+
                     <!-- EDITAR (ADMIN + PROFESOR) -->
                     {% if current_user.has_role('ADMIN') or current_user.has_role('PROFESOR') %}
                         <a href="{{ url_for('alumnos.editar', id=a.id) }}"
@@ -97,5 +114,50 @@
         </tbody>
     </table>
 </div>
+
+<!-- ✅ SCRIPT BUSCADOR -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const input = document.getElementById("alumnosSearch");
+  const btn = document.getElementById("btnLimpiarBusqueda");
+  const mostrando = document.getElementById("mostrandoCount");
+  const rows = document.querySelectorAll("#tablaAlumnos tbody tr");
+
+  if (!input || !rows.length) {
+    console.warn("Buscador: no se encontró input o filas de tabla.");
+    return;
+  }
+
+  function filtrar() {
+    const term = (input.value || "").toLowerCase().trim();
+    let visibles = 0;
+
+    rows.forEach(tr => {
+      const text = tr.textContent.toLowerCase();
+      const show = text.includes(term);
+      tr.style.display = show ? "" : "none";
+      if (show) visibles++;
+    });
+
+    if (mostrando) mostrando.textContent = visibles;
+  }
+
+  input.addEventListener("input", filtrar);
+
+  if (btn) {
+    btn.addEventListener("click", () => {
+      input.value = "";
+      filtrar();
+      input.focus();
+    });
+  }
+
+  // inicial
+  filtrar();
+});
+</script>
+
+<script src="{{ url_for('static', filename='js/alumnos_busqueda.js') }}"></script>
 
 {% endblock %}

@@ -14,7 +14,8 @@ class CategoriaCompetencia(db.Model):
     peso_min = db.Column(db.Float)   # NULL para POOMSAE
     peso_max = db.Column(db.Float)   # NULL para POOMSAE
 
-    grado_id = db.Column(db.Integer, nullable=True)  # 👈 ESTE ES EL PROBLEMA
+    # puede ser NULL si quieres "aplica a todos los grados"
+    grado_id = db.Column(db.Integer, nullable=True)
 
     nombre = db.Column(db.String(100), nullable=False)
     activo = db.Column(db.Boolean, default=True)

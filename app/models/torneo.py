@@ -9,3 +9,9 @@ class Torneo(db.Model):
     fecha = db.Column(db.Date, nullable=False)
     organizador = db.Column(db.String(100))
     activo = db.Column(db.Boolean, default=True)
+
+    precio_poomsae = db.Column(db.Numeric(10, 2), nullable=False, server_default="0.00")
+    precio_combate = db.Column(db.Numeric(10, 2), nullable=False, server_default="0.00")
+    precio_ambas   = db.Column(db.Numeric(10, 2), nullable=False, server_default="0.00")
+
+    academia_id = db.Column(db.Integer, nullable=False)  # ✅ AGREGAR
