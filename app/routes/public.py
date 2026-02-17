@@ -21,7 +21,7 @@ def _get_academia_id_publica():
     if h and h.isdigit():
         return int(h)
 
-    # 3) Fallback: si Apolo es 1
+    # 3) Fallback: si Dojo Manager es 1
     return 1
 
 

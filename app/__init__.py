@@ -92,10 +92,11 @@ def create_app():
     def inject_academia():
         return {
             "academia": {
-                "nombre": "Academia APOLO",
-                "email": "contacto@apolotkd.com",
-                "telefono": "+593 99 999 9999",
-                "logo": "img/logo_apolo.jpg"
+            "nombre": app.config.get("APP_NAME", "Dojo Manager"),
+            "email": app.config.get("APP_EMAIL", "demo@dojomanager.app"),
+            "telefono": app.config.get("APP_PHONE", "+593 000 000 000"),
+            "logo": app.config.get("APP_LOGO", "img/logoDojoManager.png"),
+            "demo_mode": app.config.get("APP_DEMO_MODE", False),
             }
         }
 
