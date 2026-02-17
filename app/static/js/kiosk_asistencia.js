@@ -16,18 +16,74 @@
   let estadoActual = 'P';
   let debounceTimer = null;
 
-  function showToast(msg) {
-    const body = document.getElementById('toastBody');
-    const toastEl = document.getElementById('toastOk');
-    if (!body || !toastEl || !window.bootstrap) {
-      alert(msg); // fallback si bootstrap JS no está
+  // ---------- Toast helpers ----------
+  function _toast(id, delay = 2200) {
+    const el = document.getElementById(id);
+    if (!el || !window.bootstrap) return null;
+    return bootstrap.Toast.getOrCreateInstance(el, { delay });
+  }
+
+  function showToastOk(msg) {
+    const body = document.getElementById('toastOkBody'); // ✅ ID único
+    const t = _toast('toastOk', 2200);
+    if (!body || !t) {
+      alert(msg);
       return;
     }
     body.innerText = msg;
-    const t = new bootstrap.Toast(toastEl, { delay: 2200 });
     t.show();
   }
 
+  function showToastAviso(aviso) {
+    if (!aviso) return;
+
+    const toastEl = document.getElementById('toastAviso');
+    const titleEl = document.getElementById('toastAvisoTitle');
+    const bodyEl  = document.getElementById('toastAvisoBody');
+    const smallEl = document.getElementById('toastAvisoSmall'); // opcional
+
+    const t = _toast('toastAviso', 6500);
+    if (!toastEl || !titleEl || !bodyEl || !t) {
+      // fallback si no está el toast
+      if (typeof aviso === 'string') alert(aviso);
+      else alert(aviso.message || aviso.text || JSON.stringify(aviso));
+      return;
+    }
+
+    // Blindado: aviso puede venir string o dict
+    let title = 'Aviso de pensión';
+    let body = '';
+    let level = 'warning'; // warning (1-5), danger (>=6), info, success...
+    let small = '';
+
+    if (typeof aviso === 'string') {
+      body = aviso;
+    } else {
+      title = aviso.title || title;
+      body  = aviso.message || aviso.text || aviso.msg || '';
+      // tu backend podría usar "type" o "level"
+      level = (aviso.level || aviso.type || aviso.tipo || level).toLowerCase();
+      small = aviso.small || '';
+    }
+
+    titleEl.innerText = title;
+    bodyEl.innerText = body;
+    if (smallEl) smallEl.innerText = small;
+
+    // Colores bootstrap:
+    // acepta: success, info, warning, danger, secondary
+    toastEl.classList.remove(
+      'text-bg-success', 'text-bg-info', 'text-bg-warning', 'text-bg-danger', 'text-bg-secondary'
+    );
+
+    const allowed = new Set(['success', 'info', 'warning', 'danger', 'secondary']);
+    const finalLevel = allowed.has(level) ? level : 'warning';
+    toastEl.classList.add(`text-bg-${finalLevel}`);
+
+    t.show();
+  }
+
+  // ---------- Estado ----------
   function setEstado(estado) {
     estadoActual = estado;
     document.querySelectorAll('[data-estado]').forEach(btn => {
@@ -55,7 +111,10 @@
 
     $results.innerHTML = '';
     items.forEach(a => {
-      const identidad = a.identidad ? `<span class="mono">${a.identidad}</span>` : '<span class="text-muted">s/identidad</span>';
+      const identidad = a.identidad
+        ? `<span class="mono">${a.identidad}</span>`
+        : '<span class="text-muted">s/identidad</span>';
+
       const el = document.createElement('button');
       el.type = 'button';
       el.className = 'list-group-item list-group-item-action';
@@ -79,6 +138,7 @@
     });
   }
 
+  // ---------- Buscar ----------
   async function buscar() {
     const q = $q.value.trim();
     if (q.length < 2) {
@@ -95,20 +155,7 @@
     const res = await fetch(url);
     const data = await res.json();
 
-    if (data.aviso) {
-      const toastEl = document.getElementById("toastAviso");
-      document.getElementById("toastTitle").innerText = data.aviso.title || "Aviso";
-      document.getElementById("toastBody").innerText = data.aviso.text || "";
-
-  // pintar estilo según tipo
-  toastEl.classList.remove("text-bg-warning", "text-bg-danger");
-  if (data.aviso.type === "danger") toastEl.classList.add("text-bg-danger");
-  else toastEl.classList.add("text-bg-warning");
-
-  const toast = new bootstrap.Toast(toastEl, { delay: 6000 });
-  toast.show();
-}
-
+    // ✅ NO mostramos aviso aquí; el aviso se genera al marcar asistencia
     if (!data.ok) {
       $results.innerHTML = `<div class="text-danger p-3">Error: ${data.error || 'No se pudo buscar'}</div>`;
       return;
@@ -117,6 +164,7 @@
     renderResults(data.data);
   }
 
+  // ---------- Marcar ----------
   async function marcar() {
     if (!seleccionado) return;
 
@@ -141,34 +189,39 @@
     });
 
     const contentType = res.headers.get("content-type") || "";
-const text = await res.text();
+    const text = await res.text();
 
-if (!res.ok) {
-  // muestra el motivo real: 302/401/403/500
-  alert(`Error HTTP ${res.status}:\n${text.substring(0, 300)}`);
-  $btnMarcar.disabled = false;
-  return;
-}
-
-if (!contentType.includes("application/json")) {
-  alert(`Respuesta no JSON (probable redirect/login/CSRF).\n\n${text.substring(0, 300)}`);
-  $btnMarcar.disabled = false;
-  return;
-}
-
-const data = JSON.parse(text);
-
-    if (!data.ok) {
-      showToast(`❌ Error: ${data.error || 'No se pudo guardar'}`);
+    if (!res.ok) {
+      alert(`Error HTTP ${res.status}:\n${text.substring(0, 300)}`);
       $btnMarcar.disabled = false;
       return;
     }
 
-    showToast(`✅ ${seleccionado.nombre} · Estado ${payload.estado} · ${payload.fecha}`);
+    if (!contentType.includes("application/json")) {
+      alert(`Respuesta no JSON (probable redirect/login/CSRF).\n\n${text.substring(0, 300)}`);
+      $btnMarcar.disabled = false;
+      return;
+    }
+
+    const data = JSON.parse(text);
+
+    if (!data.ok) {
+      showToastOk(`❌ Error: ${data.error || 'No se pudo guardar'}`);
+      $btnMarcar.disabled = false;
+      return;
+    }
+
+    // ✅ Toast OK
+    showToastOk(`✅ ${seleccionado.nombre} · Estado ${payload.estado} · ${payload.fecha}`);
+
+    // ✅ Toast Aviso de pensión (tu lógica ya lo arma en backend)
+    // Regla: 1-5 "pague hasta el 5"; >=6 "atraso" -> esto ya viene en data.aviso
+    showToastAviso(data.aviso);
+
     limpiar();
   }
 
-  // Eventos
+  // ---------- Eventos ----------
   $btnMarcar.addEventListener('click', marcar);
   $btnLimpiar.addEventListener('click', limpiar);
 

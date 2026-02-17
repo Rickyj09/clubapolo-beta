@@ -48,3 +48,114 @@
     font-size: 1rem;
   }
 }
+
+
+/* =========================
+   KIOSK TOUCH (Tablet-first)
+   ========================= */
+
+/* Base */
+body.kiosk {
+  background: #f6f7fb;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.kiosk .wrap {
+  max-width: 1200px;
+}
+
+/* Tipografía más grande en general */
+body.kiosk .card-body {
+  font-size: 1.05rem;
+}
+
+/* Inputs más altos (táctil) */
+body.kiosk .form-control,
+body.kiosk .form-select {
+  min-height: 52px;
+  font-size: 1.05rem;
+}
+
+/* Botón Guardar (táctil) */
+body.kiosk .big-btn {
+  padding: 18px 18px;
+  font-size: 1.2rem;
+  min-height: 62px;
+  border-radius: 14px;
+}
+
+/* Lista de resultados con tarjetas más altas */
+body.kiosk .kiosk-results .list-group-item {
+  padding: 16px 16px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+body.kiosk .kiosk-results .list-group-item .fw-semibold {
+  font-size: 1.15rem;
+}
+
+body.kiosk .kiosk-results .list-group-item .small {
+  font-size: 0.95rem;
+}
+
+/* Área "Seleccionado" destacada */
+body.kiosk #seleccion {
+  font-size: 1.35rem !important;
+  line-height: 1.2;
+}
+
+/* Botones de estado (P/A/T/J) estilo touch */
+body.kiosk .kiosk-states .btn {
+  min-height: 64px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* Que se note el activo */
+body.kiosk .kiosk-states .btn.active {
+  transform: scale(1.02);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.10);
+}
+
+/* Mejor scroll en tablet */
+body.kiosk .results-list {
+  max-height: 56vh; /* en tablet aprovecha altura */
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+
+/* Toast más grande */
+body.kiosk .toast {
+  border-radius: 14px;
+}
+body.kiosk .toast .toast-body {
+  font-size: 1.05rem;
+}
+body.kiosk .toast .toast-header strong {
+  font-size: 1.05rem;
+}
+
+/* =========================
+   Breakpoints específicos
+   ========================= */
+
+/* Tablets típicas (>=768px) */
+@media (min-width: 768px) {
+  body.kiosk .card-body { font-size: 1.1rem; }
+  body.kiosk .form-control, body.kiosk .form-select { min-height: 56px; font-size: 1.1rem; }
+  body.kiosk .kiosk-states .btn { min-height: 72px; font-size: 1.15rem; }
+  body.kiosk #seleccion { font-size: 1.45rem !important; }
+}
+
+/* Landscape tablet (>=992px y orientación horizontal) */
+@media (min-width: 992px) and (orientation: landscape) {
+  body.kiosk .results-list { max-height: 62vh; }
+  body.kiosk .wrap { margin: 12px auto; }
+}
+
+/* Móviles (por si alguien entra) */
+@media (max-width: 576px) {
+  body.kiosk .kiosk-title h2 { font-size: 1.25rem; }
+  body.kiosk .results-list { max-height: 45vh; }
+}
