@@ -81,8 +81,8 @@
        id="menuReportes">
     <ul class="nav flex-column ms-3 mt-1">
       <li class="nav-item">
-        <a class="nav-link text-white py-1 {% if request.endpoint=='reportes.lista_competencia' %}active{% endif %}"
-           href="{{ url_for('reportes.lista_competencia') }}">
+        <a class="nav-link text-white py-1 {% if request.endpoint=='reportes.combate' %}active{% endif %}"
+           href="{{ url_for('reportes.combate') }}"></a>
           <i class="bi bi-list-check me-2"></i> Lista para competencia
         </a>
       </li>
