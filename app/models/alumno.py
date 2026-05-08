@@ -1,8 +1,9 @@
 from app.extensions import db
 from datetime import date 
 from sqlalchemy import Enum
+from app.models.mixins import TenantMixin
 
-class Alumno(db.Model):
+class Alumno(TenantMixin,db.Model):
     __tablename__ = "alumnos"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -11,6 +12,7 @@ class Alumno(db.Model):
     fecha_nacimiento = db.Column(db.Date, nullable=False)
     genero = db.Column(db.String(1), nullable=False)
     activo = db.Column(db.Boolean, default=True)
+    numero_identidad = db.Column(db.String(20), nullable=True)
     fecha_ingreso = db.Column(
         db.Date,
         nullable=True,

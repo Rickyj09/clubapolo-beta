@@ -1,120 +1,212 @@
+{# templates/partials/sidebar_menu.html #}
+
 <div class="text-center mb-4 sidebar-brand">
-    <img src="{{ url_for('static', filename='img/logo_apolo.jpg') }}"
-         alt="Apolo Gym"
-         class="sidebar-logo">
-    <div class="mt-2 fw-bold text-white">Apolo Gym</div>
+  <img
+    src="{{ url_for('static', filename=(tenant_logo or app_logo)) }}"
+    alt="{{ tenant_nombre or app_nombre }}"
+    class="sidebar-logo"
+  >
+  <div class="mt-2 fw-bold text-white">
+    {{ tenant_nombre or app_nombre }}
+  </div>
+
+  {% if role_label or sucursal_nombre %}
+    <div class="text-white-50 small">
+      {{ role_label or '' }}{% if sucursal_nombre %} · {{ sucursal_nombre }}{% endif %}
+    </div>
+  {% endif %}
 </div>
+
+{% set ep = request.endpoint or "" %}
+{% set is_auth = current_user.is_authenticated %}
+{% set is_admin = is_auth and (current_user.has_role("ADMIN") or current_user.has_role("SUPERADMIN")) %}
+{% set is_staff = is_auth and (current_user.has_role("ADMIN") or current_user.has_role("PROFESOR") or current_user.has_role("SUPERADMIN")) %}
 
 <ul class="nav nav-pills flex-column gap-1">
 
-    <!-- Dashboard (ADMIN y PROFESOR) -->
+  <!-- Dashboard -->
+  <li class="nav-item">
+    <a href="{{ url_for('admin.dashboard') }}"
+       class="nav-link text-white {% if ep.startswith('admin.') %}active{% endif %}">
+      <i class="bi bi-speedometer2 me-2"></i> Dashboard
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a href="{{ url_for('torneos.index') }}"
+       class="nav-link text-white {% if ep.startswith('torneos.') %}active{% endif %}">
+      <i class="bi bi-trophy me-2"></i> Torneos
+    </a>
+  </li>
+
+  <li class="nav-item">
+    <a href="{{ url_for('ranking.index') }}"
+       class="nav-link text-white {% if ep.startswith('ranking.') %}active{% endif %}">
+      <i class="bi bi-award me-2"></i> Ranking
+    </a>
+  </li>
+
+  <!-- ===== SOLO ADMIN / SUPERADMIN ===== -->
+  {% if is_admin %}
+
     <li class="nav-item">
-        <a href="{{ url_for('admin.dashboard') }}"
-           class="nav-link text-white">
-            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-        </a>
+      <a href="{{ url_for('admin.usuarios') }}"
+         class="nav-link text-white {% if ep == 'admin.usuarios' or ep.startswith('admin.usuario_') %}active{% endif %}">
+        <i class="bi bi-people me-2"></i> Usuarios
+      </a>
     </li>
 
     <li class="nav-item">
-        <a href="{{ url_for('torneos.index') }}"
-           class="nav-link text-white">
-            <i class="bi bi-trophy me-2"></i> Torneos
-        </a>
+      <a href="{{ url_for('admin.roles') }}"
+         class="nav-link text-white {% if ep == 'admin.roles' or ep.startswith('admin.role_') %}active{% endif %}">
+        <i class="bi bi-shield-lock me-2"></i> Roles
+      </a>
     </li>
 
     <li class="nav-item">
-        <a href="{{ url_for('ranking.index') }}"
-           class="nav-link text-white">
-          <i class="bi bi-trophy me-2"></i> Ranking
-        </a>
+      <a href="{{ url_for('sucursales.index') }}"
+         class="nav-link text-white {% if ep.startswith('sucursales.') %}active{% endif %}">
+        <i class="bi bi-building me-2"></i> Sucursales
+      </a>
     </li>
 
-    <!-- ===== SOLO ADMIN ===== -->
-    {% if current_user.has_role("ADMIN") %}
+    <li class="nav-item">
+      <a href="{{ url_for('examenes.list_examenes') }}"
+         class="nav-link text-white {% if ep.startswith('examenes.') %}active{% endif %}">
+        <i class="bi bi-card-checklist me-2"></i> Exámenes
+      </a>
+    </li>
 
-        <li class="nav-item">
-            <a href="{{ url_for('admin.usuarios') }}"
-               class="nav-link text-white">
-                <i class="bi bi-people me-2"></i> Usuarios
+    <li class="nav-item">
+      <a href="{{ url_for('ascensos.list') }}"
+         class="nav-link text-white {% if ep.startswith('ascensos.') %}active{% endif %}">
+        <i class="bi bi-arrow-up-circle me-2"></i> Ascensos
+      </a>
+    </li>
+
+    <li class="nav-item">
+  <a href="{{ url_for('kiosk.asistencia') }}"
+     class="nav-link text-white {% if ep.startswith('kiosk.') %}active{% endif %}">
+    <i class="bi bi-person-check me-2"></i> Kiosk Asistencia
+  </a>
+</li>
+
+    <li class="nav-item">
+  <a class="nav-link" href="{{ url_for('banco_preguntas.list') }}">
+    <i class="bi bi-question-circle"></i>
+    <span>Banco de preguntas</span>
+  </a>
+</li>
+
+
+  {% endif %}
+
+  <!-- ===== ADMIN + PROFESOR + SUPERADMIN ===== -->
+  {% if is_staff %}
+
+    <li class="nav-item">
+      <a href="{{ url_for('alumnos.index') }}"
+         class="nav-link text-white {% if ep.startswith('alumnos.') %}active{% endif %}">
+        <i class="bi bi-mortarboard me-2"></i> Alumnos
+      </a>
+    </li>
+
+    <li class="nav-item">
+  <a href="{{ url_for('torneos.index') }}"
+     class="nav-link text-white">
+    <i class="bi bi-trophy me-2"></i> Torneos
+  </a>
+</li>
+
+<li class="nav-item">
+  <a href="{{ url_for('ranking.index') }}"
+     class="nav-link text-white">
+    <i class="bi bi-award me-2"></i> Ranking
+  </a>
+</li>
+
+
+    <!-- REPORTES -->
+    <li class="nav-item">
+      <a class="nav-link text-white {% if ep.startswith('reportes.') or ep.startswith('resultados.') %}active{% endif %}"
+         data-bs-toggle="collapse"
+         href="#menuReportes"
+         role="button"
+         aria-expanded="{% if ep.startswith('reportes.') or ep.startswith('resultados.') %}true{% else %}false{% endif %}">
+        <i class="bi bi-bar-chart me-2"></i> Reportes
+        <i class="bi bi-chevron-down float-end"></i>
+      </a>
+
+      <div class="collapse {% if ep.startswith('reportes.') or ep.startswith('resultados.') %}show{% endif %}" id="menuReportes">
+        <ul class="nav flex-column ms-3 mt-1">
+
+          <li class="nav-item">
+            <a class="nav-link text-white-50 {% if ep == 'reportes.index' %}active{% endif %}"
+               href="{{ url_for('reportes.index') }}">
+              <i class="bi bi-table me-2"></i> General
             </a>
-        </li>
+          </li>
 
-        <li class="nav-item">
-            <a href="{{ url_for('admin.roles') }}"
-               class="nav-link text-white">
-                <i class="bi bi-shield-lock me-2"></i> Roles
+
+          <li class="nav-item">
+  <a class="nav-link text-white-50"
+     href="{{ url_for('reportes.lista_competencia') }}">
+    <i class="bi bi-list-check me-2"></i> Lista para competencia
+  </a>
+</li>
+
+
+          <li class="nav-item">
+            <a class="nav-link text-white-50 {% if ep == 'reportes.combate' %}active{% endif %}"
+               href="{{ url_for('reportes.combate') }}">
+              <i class="bi bi-lightning-charge me-2"></i> Combate (Edad/Peso)
             </a>
-        </li>
+          </li>
 
-        <li class="nav-item">
-            <a href="{{ url_for('sucursales.index') }}"
-               class="nav-link text-white">
-                <i class="bi bi-building me-2"></i> Sucursales
+          <li class="nav-item">
+            <a class="nav-link text-white-50 {% if ep == 'reportes.poomsae' %}active{% endif %}"
+               href="{{ url_for('reportes.poomsae') }}">
+              <i class="bi bi-person-arms-up me-2"></i> Poomsae (Grado/Edad)
             </a>
-        </li>
+          </li>
 
-        <li class="nav-item">
-            <a class="nav-link text-white" href="{{ url_for('kiosk.asistencia') }}">
-                🟦 Kiosko Asistencia
+          <li class="nav-item">
+            <a class="nav-link text-white-50 {% if ep == 'reportes.morosidad' %}active{% endif %}"
+               href="{{ url_for('reportes.morosidad') }}">
+              <i class="bi bi-cash-coin me-2"></i> Morosidad
             </a>
-        </li>
+          </li>
 
-    {% endif %}
-
-    <!-- ===== ADMIN + PROFESOR ===== -->
-    {% if current_user.has_role("ADMIN") or current_user.has_role("PROFESOR") %}
-
-        <li class="nav-item">
-            <a href="{{ url_for('alumnos.index') }}"
-               class="nav-link text-white">
-                <i class="bi bi-mortarboard me-2"></i> Alumnos
+          <li class="nav-item">
+            <a class="nav-link text-white-50 {% if ep == 'reportes.seleccion_torneo' %}active{% endif %}"
+               href="{{ url_for('reportes.seleccion_torneo') }}">
+              <i class="bi bi-person-check me-2"></i> Selección de Competidores
             </a>
-        </li>
+          </li>
 
-        <!-- ===== REPORTES (MENÚ PADRE + SUBMENÚ) ===== -->
-        <li class="nav-item">
+          <li class="nav-item">
+            <a class="nav-link text-white-50 {% if ep == 'resultados.seleccionar_torneo' %}active{% endif %}"
+               href="{{ url_for('resultados.seleccionar_torneo') }}">
+              <i class="bi bi-camera me-2"></i> Resultados por categoría
+            </a>
+          </li>
 
-          <a class="nav-link text-white d-flex justify-content-between align-items-center"
-             data-bs-toggle="collapse"
-             href="#menuReportes"
-             role="button"
-             aria-expanded="{% if request.endpoint and request.endpoint.startswith('reportes.') %}true{% else %}false{% endif %}"
-             aria-controls="menuReportes">
-            <span>
-              <i class="bi bi-file-earmark-text me-2"></i> Reportes
-            </span>
-            <i class="bi bi-chevron-down small"></i>
-          </a>
+        </ul>
+      </div>
+    </li>
 
-          <div class="collapse {% if request.endpoint and request.endpoint.startswith('reportes.') %}show{% endif %}"
-               id="menuReportes">
-            <ul class="nav flex-column ms-3 mt-1">
-
-              <li class="nav-item">
-                <a class="nav-link text-white py-1 {% if request.endpoint=='reportes.lista_competencia' %}active{% endif %}"
-                   href="{{ url_for('reportes.lista_competencia') }}">
-                  <i class="bi bi-list-check me-2"></i> Lista para competencia
-                </a>
-              </li>
-
-              <!-- Aquí vas agregando más reportes -->
-
-            </ul>
-          </div>
-
-        </li>
-
-    {% endif %}
+  {% endif %}
 
 </ul>
 
 <hr class="text-secondary">
 
-<div class="text-white small">
+{% if is_auth %}
+  <div class="text-white small">
     {{ current_user.username }}
-</div>
+  </div>
 
-<a href="{{ url_for('auth.logout') }}"
-   class="btn btn-outline-light btn-sm mt-2 w-100">
+  <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm mt-2 w-100">
     Cerrar sesión
-</a>
+  </a>
+{% endif %}

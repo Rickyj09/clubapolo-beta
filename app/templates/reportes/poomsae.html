@@ -1,0 +1,129 @@
+{% extends "base_admin.html" %}
+{% block title %}Reporte Poomsae{% endblock %}
+
+{% block content %}
+<h3 class="mb-3">Reporte Poomsae (Grado / Edad)</h3>
+
+<form method="get" class="card shadow-sm mb-3">
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+
+      <div class="col-md-3">
+        <label class="form-label">Sucursal</label>
+        <select class="form-select" name="sucursal_id">
+          <option value="">Todas</option>
+          {% for s in sucursales %}
+            <option value="{{ s.id }}" {% if filtros.sucursal_id == s.id %}selected{% endif %}>
+              {{ s.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Género</label>
+        <select class="form-select" name="genero">
+          <option value="">Todos</option>
+          <option value="M" {% if filtros.genero == 'M' %}selected{% endif %}>Masculino</option>
+          <option value="F" {% if filtros.genero == 'F' %}selected{% endif %}>Femenino</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+  <label class="form-label">Fecha del torneo</label>
+  <input type="date"
+         class="form-control"
+         name="fecha_base"
+         value="{{ filtros.fecha_base }}">
+</div>
+
+      <div class="col-md-2">
+        <label class="form-label">Edad mín.</label>
+        <input type="number" class="form-control" name="edad_min" value="{{ filtros.edad_min or '' }}">
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Edad máx.</label>
+        <input type="number" class="form-control" name="edad_max" value="{{ filtros.edad_max or '' }}">
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Tipo de grado</label>
+        <select class="form-select" name="tipo_grado">
+          <option value="">Todos</option>
+          <option value="KUP" {% if filtros.tipo_grado == 'KUP' %}selected{% endif %}>KUP</option>
+          <option value="DAN" {% if filtros.tipo_grado == 'DAN' %}selected{% endif %}>DAN</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Grado</label>
+        <select class="form-select" name="grado_id">
+          <option value="">Todos</option>
+          {% for g in grados %}
+            <option value="{{ g.id }}" {% if filtros.grado_id == g.id %}selected{% endif %}>
+              {{ g.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2 d-flex justify-content-end gap-2">
+        <button class="btn btn-primary" type="submit" title="Vista previa">
+          <i class="bi bi-search"></i>
+        </button>
+
+        <a class="btn btn-success"
+           title="Exportar Excel"
+           href="{{ url_for('reportes.poomsae_export_excel',
+    fecha_base=filtros.fecha_base,
+    sucursal_id=filtros.sucursal_id,
+    genero=filtros.genero,
+    edad_min=filtros.edad_min,
+    edad_max=filtros.edad_max,
+    tipo_grado=filtros.tipo_grado,
+    grado_id=filtros.grado_id) }}">
+          <i class="bi bi-file-earmark-excel"></i>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</form>
+
+<div class="text-muted mb-2">Total: {{ total }}</div>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Apellidos</th>
+        <th>Nombres</th>
+        <th>Género</th>
+        <th>F. Nac.</th>
+        <th>Sucursal</th>
+        <th>Grado</th>
+        <th>Tipo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in resultados %}
+        <tr>
+          <td>{{ r.id }}</td>
+          <td>{{ r.apellidos }}</td>
+          <td>{{ r.nombres }}</td>
+          <td>{{ r.genero }}</td>
+          <td>{{ r.fecha_nacimiento.strftime('%d/%m/%Y') if r.fecha_nacimiento else '' }}</td>
+          <td>{{ r.sucursal }}</td>
+          <td>{{ r.grado }}</td>
+          <td>{{ r.grado_tipo }}</td>
+        </tr>
+      {% endfor %}
+      {% if resultados|length == 0 %}
+        <tr><td colspan="8" class="text-center text-muted py-4">Sin resultados.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
