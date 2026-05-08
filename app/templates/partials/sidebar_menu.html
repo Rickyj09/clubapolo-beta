@@ -7,103 +7,88 @@
 
 <ul class="nav nav-pills flex-column gap-1">
 
-    <!-- Dashboard (ADMIN y PROFESOR) -->
     <li class="nav-item">
-        <a href="{{ url_for('admin.dashboard') }}"
-           class="nav-link text-white">
+        <a href="{{ url_for('admin.dashboard') }}" class="nav-link text-white">
             <i class="bi bi-speedometer2 me-2"></i> Dashboard
         </a>
     </li>
 
     <li class="nav-item">
-        <a href="{{ url_for('torneos.index') }}"
-           class="nav-link text-white">
+        <a href="{{ url_for('torneos.index') }}" class="nav-link text-white">
             <i class="bi bi-trophy me-2"></i> Torneos
         </a>
     </li>
 
     <li class="nav-item">
-        <a href="{{ url_for('ranking.index') }}"
-           class="nav-link text-white">
-          <i class="bi bi-trophy me-2"></i> Ranking
+        <a href="{{ url_for('ranking.index') }}" class="nav-link text-white">
+            <i class="bi bi-award me-2"></i> Ranking
         </a>
     </li>
 
-    <!-- ===== SOLO ADMIN ===== -->
     {% if current_user.has_role("ADMIN") %}
-
         <li class="nav-item">
-            <a href="{{ url_for('admin.usuarios') }}"
-               class="nav-link text-white">
+            <a href="{{ url_for('admin.usuarios') }}" class="nav-link text-white">
                 <i class="bi bi-people me-2"></i> Usuarios
             </a>
         </li>
 
         <li class="nav-item">
-            <a href="{{ url_for('admin.roles') }}"
-               class="nav-link text-white">
+            <a href="{{ url_for('admin.roles') }}" class="nav-link text-white">
                 <i class="bi bi-shield-lock me-2"></i> Roles
             </a>
         </li>
 
         <li class="nav-item">
-            <a href="{{ url_for('sucursales.index') }}"
-               class="nav-link text-white">
+            <a href="{{ url_for('sucursales.index') }}" class="nav-link text-white">
                 <i class="bi bi-building me-2"></i> Sucursales
             </a>
         </li>
 
+    
+
+       
+
         <li class="nav-item">
-            <a class="nav-link text-white" href="{{ url_for('kiosk.asistencia') }}">
-                🟦 Kiosko Asistencia
+            <a href="{{ url_for('kiosk.asistencia') }}" class="nav-link text-white">
+                <i class="bi bi-person-check me-2"></i> Kiosko Asistencia
             </a>
         </li>
 
+       
     {% endif %}
 
-    <!-- ===== ADMIN + PROFESOR ===== -->
     {% if current_user.has_role("ADMIN") or current_user.has_role("PROFESOR") %}
-
         <li class="nav-item">
-            <a href="{{ url_for('alumnos.index') }}"
-               class="nav-link text-white">
+            <a href="{{ url_for('alumnos.index') }}" class="nav-link text-white">
                 <i class="bi bi-mortarboard me-2"></i> Alumnos
             </a>
         </li>
 
-        <!-- ===== REPORTES (MENÚ PADRE + SUBMENÚ) ===== -->
         <li class="nav-item">
+  <a class="nav-link text-white d-flex justify-content-between align-items-center"
+     data-bs-toggle="collapse"
+     href="#menuReportes"
+     role="button"
+     aria-expanded="{% if request.endpoint and request.endpoint.startswith('reportes.') %}true{% else %}false{% endif %}"
+     aria-controls="menuReportes">
+    <span>
+      <i class="bi bi-file-earmark-text me-2"></i> Reportes
+    </span>
+    <i class="bi bi-chevron-down small"></i>
+  </a>
 
-          <a class="nav-link text-white d-flex justify-content-between align-items-center"
-             data-bs-toggle="collapse"
-             href="#menuReportes"
-             role="button"
-             aria-expanded="{% if request.endpoint and request.endpoint.startswith('reportes.') %}true{% else %}false{% endif %}"
-             aria-controls="menuReportes">
-            <span>
-              <i class="bi bi-file-earmark-text me-2"></i> Reportes
-            </span>
-            <i class="bi bi-chevron-down small"></i>
-          </a>
-
-          <div class="collapse {% if request.endpoint and request.endpoint.startswith('reportes.') %}show{% endif %}"
-               id="menuReportes">
-            <ul class="nav flex-column ms-3 mt-1">
-
-              <li class="nav-item">
-                <a class="nav-link text-white py-1 {% if request.endpoint=='reportes.lista_competencia' %}active{% endif %}"
-                   href="{{ url_for('reportes.lista_competencia') }}">
-                  <i class="bi bi-list-check me-2"></i> Lista para competencia
-                </a>
-              </li>
-
-              <!-- Aquí vas agregando más reportes -->
-
-            </ul>
-          </div>
-
-        </li>
-
+  <div class="collapse {% if request.endpoint and request.endpoint.startswith('reportes.') %}show{% endif %}"
+       id="menuReportes">
+    <ul class="nav flex-column ms-3 mt-1">
+      <li class="nav-item">
+        <a class="nav-link text-white py-1 {% if request.endpoint=='reportes.lista_competencia' %}active{% endif %}"
+           href="{{ url_for('reportes.lista_competencia') }}">
+          <i class="bi bi-list-check me-2"></i> Lista para competencia
+        </a>
+      </li>
+    </ul>
+  </div>
+</li>
     {% endif %}
 
 </ul>
