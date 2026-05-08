@@ -10,10 +10,21 @@ from app.models import Asistencia
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
+def can_access_admin() -> bool:
+    return (
+        current_user.is_authenticated
+        and (
+            current_user.has_role("SUPERADMIN")
+            or current_user.has_role("ADMIN")
+            or current_user.has_role("PROFESOR")
+        )
+    )
+
+
 @admin_bp.route("/")
 @login_required
 def dashboard():
-    if not current_user.has_role("ADMIN") and not current_user.has_role("PROFESOR"):
+    if not can_access_admin():
         abort(403)
 
     total_alumnos = Alumno.query.count()
@@ -107,9 +118,8 @@ def role_eliminar(id):
         flash("No se puede eliminar un rol asignado a usuarios", "danger")
         return redirect(url_for("admin.roles"))
 
-        db.session.delete(role)
-        db.session.commit()
-
+    db.session.delete(role)
+    db.session.commit()
     flash("Rol eliminado", "success")
     return redirect(url_for("admin.roles"))
 
@@ -264,7 +274,7 @@ def asignar_sucursal(user_id):
 @admin_bp.route("/asistencias", methods=["GET"])
 @login_required
 def asistencias():
-    if not current_user.has_role("ADMIN") and not current_user.has_role("PROFESOR"):
+    if not (current_user.has_role("SUPERADMIN") or current_user.has_role("ADMIN") or current_user.has_role("PROFESOR")):
         abort(403)
 
     # fecha filtro
@@ -285,7 +295,7 @@ def asistencias():
     # si no elige sucursal (ADMIN), solo muestra pantalla para seleccionar
     if not sucursal_id:
         return render_template(
-            "admin/asistencias/index.html",
+            "admin/asistencias.html",
             fecha=fecha,
             sucursal_id=None,
             sucursales=sucursales,
@@ -301,7 +311,7 @@ def asistencias():
     asistencias_map = {a.alumno_id: a for a in asistencias}
 
     return render_template(
-        "admin/asistencias/index.html",
+        "admin/asistencias.html",
         fecha=fecha,
         sucursal_id=sucursal_id,
         sucursales=sucursales,
@@ -312,7 +322,7 @@ def asistencias():
 @admin_bp.route("/asistencias/guardar", methods=["POST"])
 @login_required
 def asistencias_guardar():
-    if not current_user.has_role("ADMIN") and not current_user.has_role("PROFESOR"):
+    if not (current_user.has_role("SUPERADMIN") or current_user.has_role("ADMIN") or current_user.has_role("PROFESOR")):
         abort(403)
 
     fecha = datetime.strptime(request.form["fecha"], "%Y-%m-%d").date()

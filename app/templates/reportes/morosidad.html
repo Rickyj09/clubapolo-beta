@@ -1,0 +1,64 @@
+{% extends "base_admin.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-0">Reporte de Morosidad</h2>
+    <small class="text-muted">Corte: {{ fecha_corte }}</small>
+  </div>
+
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-success"
+       href="{{ url_for('reportes.morosidad_xlsx',
+                        fecha_corte=fecha_corte,
+                        sucursal_id=request.args.get('sucursal_id',''),
+                        activo=request.args.get('activo','1'),
+                        solo_morosos=request.args.get('solo_morosos','1')) }}">
+      Exportar Excel
+    </a>
+  </div>
+</div>
+
+<div class="alert alert-info">
+  Total registros: <b>{{ total }}</b> |
+  Solo morosos: <b>{{ "Sí" if solo_morosos else "No" }}</b>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Identidad</th>
+        <th>Nombres</th>
+        <th>Apellidos</th>
+        <th>Sucursal</th>
+        <th>Último pago</th>
+        <th>Último período</th>
+        <th>Meses vencidos</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in data %}
+      <tr>
+        <td>{{ r.identidad }}</td>
+        <td>{{ r.nombres }}</td>
+        <td>{{ r.apellidos }}</td>
+        <td>{{ r.sucursal }}</td>
+        <td>{{ r.ultimo_pago }}</td>
+        <td>{{ r.ultimo_periodo }}</td>
+        <td>{{ r.meses_vencidos }}</td>
+        <td>
+          {% if r.estado == "MOROSO" %}
+            <span class="badge bg-danger">MOROSO</span>
+          {% else %}
+            <span class="badge bg-success">AL DÍA</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

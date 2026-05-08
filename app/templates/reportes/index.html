@@ -1,0 +1,112 @@
+{% extends "base_admin.html" %}
+{% block title %}Reportes{% endblock %}
+
+{% block content %}
+<h3 class="mb-3">Reportes</h3>
+
+<form method="get" class="card shadow-sm mb-3">
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+
+      <div class="col-md-3">
+        <label class="form-label">Sucursal</label>
+        <select class="form-select" name="sucursal_id">
+          <option value="">Todas</option>
+          {% for s in sucursales %}
+            <option value="{{ s.id }}" {% if filtros.sucursal_id == s.id %}selected{% endif %}>
+              {{ s.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Género</label>
+        <select class="form-select" name="genero">
+          <option value="">Todos</option>
+          <option value="M" {% if filtros.genero == 'M' %}selected{% endif %}>Masculino</option>
+          <option value="F" {% if filtros.genero == 'F' %}selected{% endif %}>Femenino</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Grado</label>
+        <select class="form-select" name="grado_id">
+          <option value="">Todos</option>
+          {% for g in grados %}
+            <option value="{{ g.id }}" {% if filtros.grado_id == g.id %}selected{% endif %}>
+              {{ g.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Peso mín.</label>
+        <input type="number" step="0.1" class="form-control" name="peso_min" value="{{ filtros.peso_min or '' }}">
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label">Peso máx.</label>
+        <input type="number" step="0.1" class="form-control" name="peso_max" value="{{ filtros.peso_max or '' }}">
+      </div>
+
+      <div class="col-12 d-flex gap-2 justify-content-end">
+        <button class="btn btn-primary" type="submit">
+          <i class="bi bi-search me-1"></i> Vista previa
+        </button>
+
+        <a class="btn btn-success"
+           href="{{ url_for('reportes.export_excel',
+                sucursal_id=filtros.sucursal_id,
+                genero=filtros.genero,
+                grado_id=filtros.grado_id,
+                peso_min=filtros.peso_min,
+                peso_max=filtros.peso_max) }}">
+          <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel
+        </a>
+      </div>
+
+    </div>
+  </div>
+</form>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div class="text-muted">Total: {{ total }}</div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Apellidos</th>
+        <th>Nombres</th>
+        <th>Género</th>
+        <th>Peso</th>
+        <th>Sucursal</th>
+        <th>Grado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in resultados %}
+        <tr>
+          <td>{{ r.id }}</td>
+          <td>{{ r.apellidos }}</td>
+          <td>{{ r.nombres }}</td>
+          <td>{{ r.genero }}</td>
+          <td>{{ r.peso }}</td>
+          <td>{{ r.sucursal }}</td>
+          <td>{{ r.grado }}</td>
+        </tr>
+      {% endfor %}
+      {% if resultados|length == 0 %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">No hay resultados con los filtros seleccionados.</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

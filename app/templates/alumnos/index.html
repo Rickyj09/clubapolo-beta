@@ -7,7 +7,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="mb-0">Listado de Alumnos</h2>
-        <small class="text-muted">Total alumnos: <span id="totalAlumnos">{{ alumnos|length }}</span></small>
+        <small class="text-muted">Total alumnos: {{ alumnos|length }}</small>
     </div>
 
     {% if current_user.has_role('ADMIN') %}
@@ -17,27 +17,34 @@
     {% endif %}
 </div>
 
-<!-- ✅ BUSCADOR RÁPIDO -->
-<div class="row g-2 align-items-center mb-3">
-    <div class="col-sm-8 col-md-6">
-        <input id="alumnosSearch" type="text" class="form-control"
-               placeholder="Buscar por ID, nombres, apellidos o género...">
-    </div>
-    <div class="col-auto">
-        <button type="button" class="btn btn-outline-secondary" id="btnLimpiarBusqueda">
-            Limpiar
-        </button>
-    </div>
-    <div class="col-auto">
-        <small class="text-muted">Mostrando: <span id="mostrandoCount">{{ alumnos|length }}</span></small>
-    </div>
-</div>
+<!-- ✅ BUSCADOR (UNA SOLA VEZ) -->
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-6">
+    <input
+      type="text"
+      name="q"
+      value="{{ q or '' }}"
+      class="form-control"
+      placeholder="Buscar por apellido o cédula"
+    >
+  </div>
+
+  <div class="col-auto d-flex gap-2">
+    <button class="btn btn-primary" type="submit">
+      <i class="bi bi-search me-1"></i> Buscar
+    </button>
+
+    <a href="{{ url_for('alumnos.index') }}" class="btn btn-outline-secondary">
+      Limpiar
+    </a>
+  </div>
+</form>
 
 <div class="table-responsive">
-    <table id="tablaAlumnos" class="table table-striped align-middle">
+    <table class="table table-striped align-middle">
         <thead class="table-dark">
             <tr>
-                <th>ID</th>
+                <th>Cédula</th>
                 <th>Nombres</th>
                 <th>Apellidos</th>
                 <th>Fecha nacimiento</th>
@@ -50,7 +57,7 @@
         <tbody>
         {% for a in alumnos %}
             <tr>
-                <td>{{ a.id }}</td>
+                <td>{{ a.numero_identidad }}</td>
                 <td>{{ a.nombres }}</td>
                 <td>{{ a.apellidos }}</td>
                 <td>{{ a.fecha_nacimiento }}</td>
@@ -64,10 +71,8 @@
                     {% endif %}
                 </td>
 
-                <!-- ACCIONES -->
                 <td class="text-center">
 
-                    <!-- PAGOS (ADMIN + PROFESOR) -->
                     <a href="{{ url_for('pagos.nuevo', alumno_id=a.id) }}"
                        class="btn btn-sm btn-success me-1"
                        title="Registrar pago">
@@ -86,7 +91,6 @@
                         <i class="bi bi-calendar-check"></i>
                     </a>
 
-                    <!-- EDITAR (ADMIN + PROFESOR) -->
                     {% if current_user.has_role('ADMIN') or current_user.has_role('PROFESOR') %}
                         <a href="{{ url_for('alumnos.editar', id=a.id) }}"
                            class="btn btn-sm btn-warning me-1"
@@ -95,7 +99,6 @@
                         </a>
                     {% endif %}
 
-                    <!-- ELIMINAR (SOLO ADMIN) -->
                     {% if current_user.has_role('ADMIN') %}
                         <form method="post"
                               action="{{ url_for('alumnos.eliminar', id=a.id) }}"
@@ -114,50 +117,5 @@
         </tbody>
     </table>
 </div>
-
-<!-- ✅ SCRIPT BUSCADOR -->
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const input = document.getElementById("alumnosSearch");
-  const btn = document.getElementById("btnLimpiarBusqueda");
-  const mostrando = document.getElementById("mostrandoCount");
-  const rows = document.querySelectorAll("#tablaAlumnos tbody tr");
-
-  if (!input || !rows.length) {
-    console.warn("Buscador: no se encontró input o filas de tabla.");
-    return;
-  }
-
-  function filtrar() {
-    const term = (input.value || "").toLowerCase().trim();
-    let visibles = 0;
-
-    rows.forEach(tr => {
-      const text = tr.textContent.toLowerCase();
-      const show = text.includes(term);
-      tr.style.display = show ? "" : "none";
-      if (show) visibles++;
-    });
-
-    if (mostrando) mostrando.textContent = visibles;
-  }
-
-  input.addEventListener("input", filtrar);
-
-  if (btn) {
-    btn.addEventListener("click", () => {
-      input.value = "";
-      filtrar();
-      input.focus();
-    });
-  }
-
-  // inicial
-  filtrar();
-});
-</script>
-
-<script src="{{ url_for('static', filename='js/alumnos_busqueda.js') }}"></script>
 
 {% endblock %}
