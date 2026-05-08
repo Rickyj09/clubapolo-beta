@@ -1,200 +1,264 @@
-// app/static/js/kiosk_asistencia.js
-(() => {
-  const $q = document.getElementById('q');
-  const $fecha = document.getElementById('fecha');
-  const $sucursal = document.getElementById('sucursal');
-  const $results = document.getElementById('results');
+console.log("KIOSK JS cargado");
 
-  const $btnMarcar = document.getElementById('btnMarcar');
-  const $btnLimpiar = document.getElementById('btnLimpiar');
-  const $seleccion = document.getElementById('seleccion');
-  const $obs = document.getElementById('obs');
+document.addEventListener("DOMContentLoaded", () => {
+  const els = {
+    fecha: document.getElementById("fecha"),
+    sucursal: document.getElementById("sucursal"),
+    q: document.getElementById("q"),
+    results: document.getElementById("results"),
+    seleccion: document.getElementById("seleccion"),
+    obs: document.getElementById("obs"),
+    btnMarcar: document.getElementById("btnMarcar"),
+    btnLimpiar: document.getElementById("btnLimpiar"),
+    warning: document.getElementById("resultsWarning"),
+    feedback: document.getElementById("feedback"),
+    toastHost: document.getElementById("toastHost"),
+    stateButtons: Array.from(document.querySelectorAll("[data-estado]")),
+  };
 
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  const state = {
+    alumno: null,
+    estado: "P",
+    abortController: null,
+  };
 
-  let seleccionado = null;
-  let estadoActual = 'P';
-  let debounceTimer = null;
+  function escapeHtml(text) {
+    return String(text)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
 
-  function showToast(msg) {
-    const body = document.getElementById('toastBody');
-    const toastEl = document.getElementById('toastOk');
-    if (!body || !toastEl || !window.bootstrap) {
-      alert(msg); // fallback si bootstrap JS no está
+  function setFeedback(message, kind = "info") {
+    if (!els.feedback) return;
+    if (!message) {
+      els.feedback.className = "d-none";
+      els.feedback.textContent = "";
       return;
     }
-    body.innerText = msg;
-    const t = new bootstrap.Toast(toastEl, { delay: 2200 });
-    t.show();
+    els.feedback.className = `alert alert-${kind} mt-3 mb-0`;
+    els.feedback.textContent = message;
+  }
+
+  function setWarning(message) {
+    if (!els.warning) return;
+    if (!message) {
+      els.warning.className = "d-none";
+      els.warning.textContent = "";
+      return;
+    }
+    els.warning.className = "alert alert-warning mb-3";
+    els.warning.textContent = message;
   }
 
   function setEstado(estado) {
-    estadoActual = estado;
-    document.querySelectorAll('[data-estado]').forEach(btn => {
-      btn.classList.remove('active');
-      if (btn.getAttribute('data-estado') === estado) btn.classList.add('active');
+    state.estado = estado;
+    els.stateButtons.forEach((btn) => {
+      const active = btn.dataset.estado === estado;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
     });
   }
 
-  function limpiar() {
-    $q.value = '';
-    $results.innerHTML = '<div class="text-muted p-3">Escribe para buscar…</div>';
-    seleccionado = null;
-    $seleccion.innerText = '—';
-    $btnMarcar.disabled = true;
-    $obs.value = '';
-    setEstado('P');
-    $q.focus();
+  function clearSelection({ keepQuery = false } = {}) {
+    state.alumno = null;
+    els.seleccion.textContent = "—";
+    els.btnMarcar.disabled = true;
+    els.obs.value = "";
+    setEstado("P");
+    if (!keepQuery) {
+      els.q.value = "";
+      els.results.innerHTML = `<div class="text-muted p-3">Escribe para buscar...</div>`;
+      setWarning(null);
+    }
   }
 
-  function renderResults(items) {
-    if (!items || items.length === 0) {
-      $results.innerHTML = '<div class="text-muted p-3">Sin resultados.</div>';
+  function selectAlumno(alumno) {
+    state.alumno = alumno;
+    els.seleccion.textContent = `${alumno.nombre}${alumno.identidad ? ` · ${alumno.identidad}` : ""}`;
+    els.btnMarcar.disabled = false;
+
+    document.querySelectorAll(".kiosk-result-item").forEach((item) => {
+      item.classList.toggle("active", Number(item.dataset.alumnoId) === Number(alumno.id));
+    });
+  }
+
+  function renderResults(data) {
+    if (!Array.isArray(data) || data.length === 0) {
+      els.results.innerHTML = `
+        <div class="results-placeholder">
+          No se encontraron alumnos.
+        </div>
+      `;
       return;
     }
 
-    $results.innerHTML = '';
-    items.forEach(a => {
-      const identidad = a.identidad ? `<span class="mono">${a.identidad}</span>` : '<span class="text-muted">s/identidad</span>';
-      const el = document.createElement('button');
-      el.type = 'button';
-      el.className = 'list-group-item list-group-item-action';
-      el.innerHTML = `
-        <div class="d-flex justify-content-between align-items-start">
+    els.results.innerHTML = data.map((alumno) => `
+      <button
+        type="button"
+        class="result-item kiosk-result-item"
+        data-alumno-id="${alumno.id}"
+      >
+        <div class="result-main">
           <div>
-            <div class="fw-semibold">${a.nombre}</div>
-            <div class="text-muted small">ID: ${a.id} · ${identidad}</div>
+            <div class="result-name">${escapeHtml(alumno.nombre)}</div>
+            <div class="result-meta">
+              ${alumno.identidad ? escapeHtml(alumno.identidad) : "Sin identificación"}
+            </div>
           </div>
-          <div><span class="badge text-bg-primary">Seleccionar</span></div>
+          <span class="pill">Sucursal ${alumno.sucursal_id ?? "—"}</span>
         </div>
-      `;
+      </button>
+    `).join("");
 
-      el.addEventListener('click', () => {
-        seleccionado = a;
-        $seleccion.innerText = `${a.nombre} (${a.identidad || 's/identidad'})`;
-        $btnMarcar.disabled = false;
+    document.querySelectorAll(".kiosk-result-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const alumno = data.find((row) => Number(row.id) === Number(item.dataset.alumnoId));
+        if (alumno) {
+          selectAlumno(alumno);
+        }
       });
-
-      $results.appendChild(el);
     });
   }
 
   async function buscar() {
-    const q = $q.value.trim();
+    const q = (els.q.value || "").trim();
+    const sucursalId = els.sucursal.value;
+
+    clearSelection({ keepQuery: true });
+    setFeedback(null);
+
     if (q.length < 2) {
-      $results.innerHTML = '<div class="text-muted p-3">Escribe al menos 2 caracteres.</div>';
+      els.results.innerHTML = `<div class="results-placeholder">Escribe al menos 2 caracteres.</div>`;
+      setWarning(null);
       return;
     }
 
-    $results.innerHTML = '<div class="text-muted p-3">Buscando…</div>';
-    seleccionado = null;
-    $seleccion.innerText = '—';
-    $btnMarcar.disabled = true;
-
-    const url = `/kiosk/buscar?q=${encodeURIComponent(q)}&sucursal_id=${encodeURIComponent($sucursal.value)}`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (data.aviso) {
-      const toastEl = document.getElementById("toastAviso");
-      document.getElementById("toastTitle").innerText = data.aviso.title || "Aviso";
-      document.getElementById("toastBody").innerText = data.aviso.text || "";
-
-  // pintar estilo según tipo
-  toastEl.classList.remove("text-bg-warning", "text-bg-danger");
-  if (data.aviso.type === "danger") toastEl.classList.add("text-bg-danger");
-  else toastEl.classList.add("text-bg-warning");
-
-  const toast = new bootstrap.Toast(toastEl, { delay: 6000 });
-  toast.show();
-}
-
-    if (!data.ok) {
-      $results.innerHTML = `<div class="text-danger p-3">Error: ${data.error || 'No se pudo buscar'}</div>`;
-      return;
+    if (state.abortController) {
+      state.abortController.abort();
     }
 
-    renderResults(data.data);
+    state.abortController = new AbortController();
+    console.log("Buscando:", q, sucursalId);
+    els.results.innerHTML = `<div class="results-placeholder">Buscando alumnos...</div>`;
+    setWarning(null);
+
+    try {
+      const url = new URL("/kiosk/buscar", window.location.origin);
+      url.searchParams.set("q", q);
+      if (sucursalId) {
+        url.searchParams.set("sucursal_id", sucursalId);
+      }
+
+      const res = await fetch(url, {
+        headers: { "X-Requested-With": "fetch" },
+        signal: state.abortController.signal,
+      });
+      const payload = await res.json();
+      console.log("Respuesta búsqueda:", payload);
+
+      if (!res.ok || !payload.ok) {
+        throw new Error(payload.error || "No se pudo buscar alumnos.");
+      }
+
+      setWarning(payload.warning || null);
+      renderResults(payload.data || []);
+    } catch (error) {
+      if (error.name === "AbortError") {
+        return;
+      }
+      els.results.innerHTML = `
+        <div class="results-placeholder">
+          ${escapeHtml(error.message || "Error de búsqueda")}
+        </div>
+      `;
+      setWarning(null);
+    }
   }
 
-  async function marcar() {
-    if (!seleccionado) return;
+  function showToast(message, kind = "success") {
+    if (!els.toastHost) return;
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${kind}`;
+    toast.textContent = message;
+    els.toastHost.appendChild(toast);
+    window.setTimeout(() => {
+      toast.remove();
+    }, 3200);
+  }
+
+  async function marcarAsistencia() {
+    if (!state.alumno) {
+      setFeedback("Selecciona un alumno antes de guardar.", "warning");
+      return;
+    }
 
     const payload = {
-      alumno_id: seleccionado.id,
-      fecha: $fecha.value,
-      sucursal_id: parseInt($sucursal.value, 10),
-      estado: estadoActual,
-      observacion: $obs.value.trim()
+      alumno_id: state.alumno.id,
+      fecha: els.fecha.value,
+      sucursal_id: Number(els.sucursal.value),
+      estado: state.estado,
+      observacion: (els.obs.value || "").trim(),
     };
 
-    $btnMarcar.disabled = true;
+    els.btnMarcar.disabled = true;
+    setFeedback("Guardando asistencia...", "info");
 
-    const res = await fetch('/kiosk/marcar', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken,
-        'X-CSRF-Token': csrfToken
-      },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const res = await fetch("/kiosk/marcar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "fetch",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    const contentType = res.headers.get("content-type") || "";
-const text = await res.text();
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "No se pudo guardar la asistencia.");
+      }
 
-if (!res.ok) {
-  // muestra el motivo real: 302/401/403/500
-  alert(`Error HTTP ${res.status}:\n${text.substring(0, 300)}`);
-  $btnMarcar.disabled = false;
-  return;
-}
+      setFeedback(null);
+      showToast(`${data.message}: ${state.alumno.nombre} (${state.estado})`, "success");
 
-if (!contentType.includes("application/json")) {
-  alert(`Respuesta no JSON (probable redirect/login/CSRF).\n\n${text.substring(0, 300)}`);
-  $btnMarcar.disabled = false;
-  return;
-}
+      if (data.aviso) {
+        showToast(data.aviso, "warning");
+      }
 
-const data = JSON.parse(text);
-
-    if (!data.ok) {
-      showToast(`❌ Error: ${data.error || 'No se pudo guardar'}`);
-      $btnMarcar.disabled = false;
-      return;
+      clearSelection({ keepQuery: false });
+      els.q.focus();
+    } catch (error) {
+      setFeedback(error.message || "Error al guardar asistencia.", "danger");
+      els.btnMarcar.disabled = false;
     }
-
-    showToast(`✅ ${seleccionado.nombre} · Estado ${payload.estado} · ${payload.fecha}`);
-    limpiar();
   }
 
-  // Eventos
-  $btnMarcar.addEventListener('click', marcar);
-  $btnLimpiar.addEventListener('click', limpiar);
+  let debounceTimer = null;
+  function debounceBuscar() {
+    window.clearTimeout(debounceTimer);
+    debounceTimer = window.setTimeout(buscar, 250);
+  }
 
-  document.querySelectorAll('[data-estado]').forEach(btn => {
-    btn.addEventListener('click', () => setEstado(btn.getAttribute('data-estado')));
+  els.q.addEventListener("input", debounceBuscar);
+  els.sucursal.addEventListener("change", () => {
+    clearSelection({ keepQuery: true });
+    debounceBuscar();
+  });
+  els.fecha.addEventListener("change", () => {
+    setFeedback(null);
+  });
+  els.stateButtons.forEach((btn) => {
+    btn.addEventListener("click", () => setEstado(btn.dataset.estado));
+  });
+  els.btnMarcar.addEventListener("click", marcarAsistencia);
+  els.btnLimpiar.addEventListener("click", () => {
+    setFeedback(null);
+    clearSelection();
+    els.q.focus();
   });
 
-  $q.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      buscar();
-    }
-  });
-
-  $q.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      const q = $q.value.trim();
-      if (q.length >= 2) buscar();
-    }, 250);
-  });
-
-  $sucursal.addEventListener('change', () => limpiar());
-
-  window.addEventListener('load', () => {
-    setEstado('P');
-    $q.focus();
-  });
-})();
+  setEstado("P");
+});

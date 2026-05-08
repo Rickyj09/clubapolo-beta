@@ -4,7 +4,9 @@ class Academia(db.Model):
     __tablename__ = "academias"
 
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False)
+    nombre = db.Column(db.String(150), nullable=False, unique=True)
+    ciudad = db.Column(db.String(100), nullable=True)
+    activo = db.Column(db.Boolean, default=True)
 
     sucursales = db.relationship(
         "Sucursal",
