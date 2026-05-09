@@ -1,15 +1,22 @@
 from sqlalchemy import or_, case
 from app.models.categoriascompetencia import CategoriaCompetencia
+from datetime import date
 
-def calcular_edad(fecha_nacimiento, fecha_evento):
-    if not fecha_nacimiento or not fecha_evento:
+def calcular_edad(fecha_nacimiento, fecha_evento=None):
+    if not fecha_nacimiento:
         return 0
+
+    if fecha_evento is None:
+        fecha_evento = date.today()
+
     years = fecha_evento.year - fecha_nacimiento.year
+
     if (fecha_evento.month, fecha_evento.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
         years -= 1
+
     return years
 
-def obtener_categoria_competencia(*, alumno, torneo, modalidad):
+def obtener_categoria_competencia(alumno, torneo, modalidad):
     """
     Retorna UNA CategoriaCompetencia válida o None.
     Permite grado_id NULL como "aplica a todos".
@@ -43,7 +50,7 @@ def obtener_categoria_competencia(*, alumno, torneo, modalidad):
     elif modalidad == "POOMSAE":
         pass
     else:
-        return None
+        return None, "No se encontró categoría válida."
 
     categoria = query.order_by(
         # primero los que NO son NULL (0), después los NULL (1)
@@ -52,4 +59,4 @@ def obtener_categoria_competencia(*, alumno, torneo, modalidad):
         CategoriaCompetencia.grado_id.desc()
     ).first()
 
-    return categoria
+    return categoria, None 

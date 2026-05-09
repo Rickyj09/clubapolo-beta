@@ -1,5 +1,5 @@
 <div class="text-center mb-4 sidebar-brand">
-    <img src="{{ url_for('static', filename='img/logoDojoManager.png') }}"
+    <img src="{{ url_for('static', filename='img/logo_apolo.jpg') }}"
          alt="Apolo Gym"
          class="sidebar-logo"
          style="max-width: 90px;">
@@ -67,6 +67,24 @@
             </a>
         </li>
 
+        <!-- EXAMENES -->
+        <li class="nav-item">
+            <a href="{{ url_for('examenes.list_examenes') }}"
+               class="nav-link text-white">
+                <i class="bi bi-card-checklist me-2"></i>
+                Exámenes
+            </a>
+        </li>
+
+        <!-- ASCENSOS -->
+        <li class="nav-item">
+            <a href="{{ url_for('ascensos.list') }}"
+               class="nav-link text-white">
+                <i class="bi bi-arrow-up-circle me-2"></i>
+                Ascensos
+            </a>
+        </li>
+
         <!-- KIOSKO -->
         <li class="nav-item">
             <a href="{{ url_for('kiosk.asistencia') }}"
@@ -76,13 +94,14 @@
             </a>
         </li>
 
-        
-
-        <!-- ASCENSOS -->
-       
-
         <!-- BANCO PREGUNTAS -->
-       
+        <li class="nav-item">
+            <a href="{{ url_for('banco_preguntas.list') }}"
+               class="nav-link text-white">
+                <i class="bi bi-question-circle me-2"></i>
+                Banco de preguntas
+            </a>
+        </li>
 
     {% endif %}
 
@@ -162,6 +181,15 @@
                            href="{{ url_for('reportes.seleccion_torneo') }}">
                             <i class="bi bi-person-check me-2"></i>
                             Selección de Competidores
+                        </a>
+                    </li>
+
+                    <!-- RESULTADOS -->
+                    <li class="nav-item">
+                        <a class="nav-link text-white-50 py-1"
+                           href="{{ url_for('resultados.seleccionar_torneo') }}">
+                            <i class="bi bi-camera me-2"></i>
+                            Resultados por categoría
                         </a>
                     </li>
 
