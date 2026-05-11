@@ -102,19 +102,17 @@
   {% endif %}
 
   <!-- Mapa (si google_maps_url es SOLO el src) -->
- {% if s.google_maps_url %}
+{% if s.google_maps_url %}
 <div class="card shadow-sm mt-4">
   <div class="card-body">
     <h5 class="card-title mb-3">Ubicación</h5>
-    <div class="ratio ratio-16x9">
-      <iframe
-        src="{{ s.google_maps_url }}"
-        style="border:0;"
-        allowfullscreen
-        loading="lazy"
-        referrerpolicy="origin">
-      </iframe>
-    </div>
+
+    <a href="{{ s.google_maps_url }}"
+       target="_blank"
+       rel="noopener noreferrer"
+       class="btn btn-outline-primary w-100">
+      📍 Cómo llegar con Google Maps
+    </a>
   </div>
 </div>
 {% endif %}
