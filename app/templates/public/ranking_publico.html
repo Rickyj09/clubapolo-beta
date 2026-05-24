@@ -1,0 +1,137 @@
+{% extends "base_public.html" %}
+{% block title %}Apolo Gym | Ranking Público{% endblock %}
+
+{% block content %}
+<section class="bg-dark text-white py-5">
+  <div class="container py-4">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8">
+        <span class="badge bg-danger mb-3 px-3 py-2">Apolo Gym Competencia</span>
+        <h1 class="display-5 fw-bold mb-3">Ranking de Competidores</h1>
+        <p class="lead text-white-50 mb-0">
+          Consulta el desempeño deportivo de nuestros competidores con base en participaciones,
+          categorías y medallas registradas en torneos oficiales.
+        </p>
+      </div>
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-lg rounded-4">
+          <div class="card-body p-4 text-dark">
+            <div class="small text-uppercase text-muted fw-semibold mb-2">Sistema de puntos</div>
+            <div class="fw-bold fs-5 mb-2">🥇 Oro = 5 pts</div>
+            <div class="fw-bold fs-5 mb-2">🥈 Plata = 3 pts</div>
+            <div class="fw-bold fs-5">🥉 Bronce = 1 pt</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-light">
+  <div class="container">
+    {% if ranking %}
+      <div class="row g-4 mb-5">
+        {% for item in ranking[:3] %}
+        <div class="col-md-4">
+          <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden {% if item.posicion == 1 %}border border-warning{% endif %}">
+            <div class="card-body p-4 text-center">
+              <div class="mb-3">
+                {% if item.posicion == 1 %}
+                  <span class="badge rounded-pill text-bg-warning fs-6 px-3 py-2">1er Lugar</span>
+                {% elif item.posicion == 2 %}
+                  <span class="badge rounded-pill text-bg-secondary fs-6 px-3 py-2">2do Lugar</span>
+                {% else %}
+                  <span class="badge rounded-pill text-bg-danger fs-6 px-3 py-2">3er Lugar</span>
+                {% endif %}
+              </div>
+              <h3 class="fw-bold mb-1">{{ item.nombre }}</h3>
+              <div class="text-muted mb-3">{{ item.grado or "Competidor Apolo Gym" }}</div>
+              <div class="display-6 fw-bold text-primary mb-3">{{ item.puntos }} pts</div>
+              <div class="small text-muted mb-2">{{ item.categorias or "Categoría no registrada" }}</div>
+              <div class="small text-muted mb-3">{{ item.modalidades or "Modalidad no registrada" }}</div>
+              <div class="d-flex justify-content-center gap-3 fw-semibold">
+                <span>🥇 {{ item.oros }}</span>
+                <span>🥈 {{ item.platas }}</span>
+                <span>🥉 {{ item.bronces }}</span>
+              </div>
+              <div class="mt-3 small text-secondary">{{ item.sucursal or "Sucursal no registrada" }}</div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="table-responsive d-none d-lg-block">
+        <table class="table table-hover align-middle shadow-sm bg-white rounded-4 overflow-hidden">
+          <thead class="table-dark">
+            <tr>
+              <th>Posición</th>
+              <th>Competidor</th>
+              <th>Grado</th>
+              <th>Categoría</th>
+              <th>Modalidad</th>
+              <th>Sucursal</th>
+              <th>Puntos</th>
+              <th>🥇</th>
+              <th>🥈</th>
+              <th>🥉</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in ranking %}
+            <tr>
+              <td><span class="badge text-bg-dark">{{ item.posicion }}</span></td>
+              <td class="fw-semibold">{{ item.nombre }}</td>
+              <td>{{ item.grado or "—" }}</td>
+              <td>{{ item.categorias or "—" }}</td>
+              <td>{{ item.modalidades or "—" }}</td>
+              <td>{{ item.sucursal or "—" }}</td>
+              <td class="fw-bold text-primary">{{ item.puntos }}</td>
+              <td>{{ item.oros }}</td>
+              <td>{{ item.platas }}</td>
+              <td>{{ item.bronces }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="row g-3 d-lg-none">
+        {% for item in ranking %}
+        <div class="col-12">
+          <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                  <div class="small text-muted mb-1">Posición #{{ item.posicion }}</div>
+                  <h5 class="fw-bold mb-1">{{ item.nombre }}</h5>
+                  <div class="text-muted small">{{ item.grado or "Sin grado registrado" }}</div>
+                </div>
+                <span class="badge text-bg-primary fs-6">{{ item.puntos }} pts</span>
+              </div>
+
+              <div class="mt-3 small">
+                <div class="mb-2"><strong>Categoría:</strong> {{ item.categorias or "—" }}</div>
+                <div class="mb-2"><strong>Modalidad:</strong> {{ item.modalidades or "—" }}</div>
+                <div class="mb-2"><strong>Sucursal:</strong> {{ item.sucursal or "—" }}</div>
+                <div class="fw-semibold">🥇 {{ item.oros }} · 🥈 {{ item.platas }} · 🥉 {{ item.bronces }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body text-center py-5">
+          <h3 class="fw-bold mb-3">Aún no hay resultados registrados para mostrar.</h3>
+          <p class="text-muted mb-0">
+            Cuando nuestros competidores acumulen participaciones y resultados en torneos,
+            el ranking aparecerá aquí automáticamente.
+          </p>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
