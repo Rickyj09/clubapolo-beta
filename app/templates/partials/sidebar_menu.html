@@ -103,6 +103,15 @@
             </a>
         </li>
 
+        <!-- PLANTILLAS EXAMEN -->
+        <li class="nav-item">
+            <a href="{{ url_for('plantillas_examen.index') }}"
+               class="nav-link text-white">
+                <i class="bi bi-journal-check me-2"></i>
+                Plantillas de examen
+            </a>
+        </li>
+
     {% endif %}
 
     {% if current_user.has_role("ADMIN") or current_user.has_role("PROFESOR") %}

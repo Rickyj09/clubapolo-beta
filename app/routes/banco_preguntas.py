@@ -4,6 +4,8 @@ from flask_login import login_required, current_user
 from app.extensions import db
 from app.models.banco_preguntas import BancoPregunta, PreguntaOpcion
 from app.models.grado import Grado
+from datetime import datetime
+
 
 banco_preguntas_bp = Blueprint("banco_preguntas", __name__, url_prefix="/banco-preguntas")
 
@@ -126,6 +128,8 @@ def nuevo():
             dificultad=dificultad,
             tags=tags,
             activo=activo,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
         )
         db.session.add(item)
         db.session.commit()

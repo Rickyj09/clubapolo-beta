@@ -18,7 +18,7 @@ from app.models.examenes import (
 from app.models.sucursal import Sucursal
 from app.models.grado import Grado
 from app.models.user import User
-from app.models.plantillas_examen import PlantillaExamen
+from app.models.plantillas_examen import PlantillaExamen, PlantillaPregunta
 from app.models.banco_preguntas import BancoPregunta, PreguntaOpcion
 from app.models.alumno import Alumno
 from app.models.ascenso import Ascenso
@@ -138,34 +138,49 @@ def _generate_questions(examen: Examen, ea: ExamenAlumno):
     if not plantilla:
         raise ValueError("Plantilla no encontrada.")
 
-    n = int(plantilla.num_preguntas or 0)
-    if n <= 0:
-        raise ValueError("La plantilla debe tener num_preguntas > 0.")
-
-    q = (
-        BancoPregunta.query
-        .filter_by(academia_id=examen.academia_id, activo=True)
-        .filter(BancoPregunta.disciplina == examen.disciplina)
-    )
-
-    if hasattr(BancoPregunta, "grado_id") and plantilla.grado_id:
-        q = q.filter(BancoPregunta.grado_id == plantilla.grado_id)
-
     if plantilla.modo_seleccion == "ALEATORIA":
+        n = int(plantilla.num_preguntas or 0)
+        if n <= 0:
+            raise ValueError("La plantilla debe tener num_preguntas > 0.")
+
+        q = (
+            BancoPregunta.query
+            .filter_by(academia_id=examen.academia_id, activo=True)
+            .filter(BancoPregunta.disciplina == examen.disciplina)
+        )
+
+        if hasattr(BancoPregunta, "grado_id") and plantilla.grado_id:
+            q = q.filter(BancoPregunta.grado_id == plantilla.grado_id)
+
         preguntas = q.order_by(func.rand()).limit(n).all()
     else:
-        preguntas = q.order_by(BancoPregunta.id.asc()).limit(n).all()
+        links = (
+            PlantillaPregunta.query
+            .filter_by(plantilla_id=plantilla.id, activo=True)
+            .order_by(PlantillaPregunta.orden.asc(), PlantillaPregunta.id.asc())
+            .all()
+        )
+        preguntas = [link.pregunta for link in links if link.pregunta and link.pregunta.activo]
+        n = len(preguntas)
+
+    if n <= 0:
+        raise ValueError("La plantilla no tiene preguntas configuradas.")
 
     if len(preguntas) < n:
         raise ValueError(f"Hay {len(preguntas)} preguntas disponibles, pero la plantilla pide {n}.")
 
     for idx, p in enumerate(preguntas, start=1):
+        puntaje = None
+        if plantilla.modo_seleccion == "FIJA":
+            link = next((item for item in links if item.pregunta_id == p.id), None)
+            puntaje = float(link.puntaje) if link and link.puntaje is not None else None
+
         db.session.add(ExamenAlumnoPregunta(
             examen_alumno_id=ea.id,
             pregunta_id=p.id,
             evaluador_id=getattr(current_user, "id", None),
             orden=idx,
-            puntaje_asignado=0,
+            puntaje_asignado=puntaje if puntaje is not None else 0,
         ))
 
 

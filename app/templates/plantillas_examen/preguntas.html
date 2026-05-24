@@ -1,0 +1,210 @@
+{% extends "base_admin.html" %}
+{% block title %}Preguntas de plantilla{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <h3 class="mb-0">Preguntas de plantilla</h3>
+    <div class="text-muted small">
+      {{ plantilla.nombre }} · {{ plantilla.disciplina }} ·
+      {% if plantilla.modo_seleccion == 'FIJA' %}seleccion fija{% else %}seleccion aleatoria{% endif %}
+    </div>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-outline-primary" href="{{ url_for('plantillas_examen.editar', plantilla_id=plantilla.id) }}">Editar plantilla</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('plantillas_examen.index') }}">Volver</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-header">
+        <h5 class="mb-0">Preguntas asociadas</h5>
+      </div>
+      <div class="card-body">
+        {% if asociados %}
+          <div class="d-flex flex-column gap-3">
+            {% for link in asociados %}
+            <div class="border rounded p-3">
+              <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="link_id" value="{{ link.id }}">
+
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div>
+                    <div class="fw-semibold">{{ link.pregunta.enunciado if link.pregunta else 'Pregunta no disponible' }}</div>
+                    <div class="small text-muted">
+                      {{ link.pregunta.tipo if link.pregunta else '-' }} ·
+                      Puntaje banco: {{ '%.2f'|format((link.pregunta.puntaje_max or 0)|float) if link.pregunta else '0.00' }}
+                    </div>
+                  </div>
+                  <span class="badge {% if link.activo %}bg-success{% else %}bg-secondary{% endif %}">
+                    {{ 'Activa' if link.activo else 'Inactiva' }}
+                  </span>
+                </div>
+
+                <div class="row g-2 mt-1">
+                  <div class="col-md-3">
+                    <label class="form-label small">Orden</label>
+                    <input class="form-control form-control-sm" type="number" name="orden" value="{{ link.orden or 0 }}">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small">Puntaje</label>
+                    <input class="form-control form-control-sm" type="number" step="0.01" min="0" name="puntaje" value="{{ link.puntaje if link.puntaje is not none else (link.pregunta.puntaje_max if link.pregunta else '') }}">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small">Obligatoria</label>
+                    <select class="form-select form-select-sm" name="obligatorio">
+                      <option value="0" {% if not link.obligatorio %}selected{% endif %}>No</option>
+                      <option value="1" {% if link.obligatorio %}selected{% endif %}>Si</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small">Activa</label>
+                    <select class="form-select form-select-sm" name="activo">
+                      <option value="1" {% if link.activo %}selected{% endif %}>Si</option>
+                      <option value="0" {% if not link.activo %}selected{% endif %}>No</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mt-3">
+                  <button class="btn btn-sm btn-primary" type="submit">Guardar</button>
+                </div>
+              </form>
+
+              <form method="post" action="{{ url_for('plantillas_examen.preguntas', plantilla_id=plantilla.id) }}" class="mt-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="remove">
+                <input type="hidden" name="link_id" value="{{ link.id }}">
+                <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('¿Quitar esta pregunta de la plantilla?');">
+                  Quitar
+                </button>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted">Esta plantilla aun no tiene preguntas asociadas.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header">
+        <h5 class="mb-0">Filtrar preguntas disponibles</h5>
+      </div>
+      <div class="card-body">
+        <form method="get" class="row g-2">
+          <div class="col-md-4">
+            <input class="form-control" name="texto" value="{{ filtros.texto or '' }}" placeholder="Buscar en enunciado">
+          </div>
+          <div class="col-md-2">
+            <input class="form-control" name="disciplina" value="{{ filtros.disciplina or '' }}" placeholder="Disciplina">
+          </div>
+          <div class="col-md-2">
+            <select class="form-select" name="tipo">
+              <option value="">-- Tipo --</option>
+              <option value="OPCION_MULTIPLE" {% if filtros.tipo == 'OPCION_MULTIPLE' %}selected{% endif %}>Opcion multiple</option>
+              <option value="VERDADERO_FALSO" {% if filtros.tipo == 'VERDADERO_FALSO' %}selected{% endif %}>Verdadero/Falso</option>
+              <option value="ABIERTA" {% if filtros.tipo == 'ABIERTA' %}selected{% endif %}>Abierta</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <select class="form-select" name="grado_id">
+              <option value="">-- Grado --</option>
+              {% for g in grados %}
+              <option value="{{ g.id }}" {% if filtros.grado_id == g.id %}selected{% endif %}>{{ g.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <select class="form-select" name="dificultad">
+              <option value="">-- Dificultad --</option>
+              {% for n in [1, 2, 3, 4, 5] %}
+              <option value="{{ n }}" {% if filtros.dificultad == n %}selected{% endif %}>{{ n }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 d-flex gap-2">
+            <button class="btn btn-outline-primary" type="submit">Filtrar</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('plantillas_examen.preguntas', plantilla_id=plantilla.id) }}">Limpiar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5 class="mb-0">Preguntas disponibles</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th>Pregunta</th>
+                <th>Tipo</th>
+                <th>Grado</th>
+                <th>Puntaje</th>
+                <th>Accion</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pregunta in disponibles %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ pregunta.enunciado }}</div>
+                  <div class="small text-muted">Disciplina: {{ pregunta.disciplina }}{% if pregunta.dificultad %} · Dificultad: {{ pregunta.dificultad }}{% endif %}</div>
+                </td>
+                <td>{{ pregunta.tipo }}</td>
+                <td>{{ grados_map.get(pregunta.grado_id).nombre if grados_map.get(pregunta.grado_id) else pregunta.grado_id }}</td>
+                <td>{{ '%.2f'|format((pregunta.puntaje_max or 0)|float) }}</td>
+                <td>
+                  {% set existente = asociados_map.get(pregunta.id) %}
+                  <form method="post" class="row g-1 align-items-end">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="add">
+                    <input type="hidden" name="pregunta_id" value="{{ pregunta.id }}">
+                    <div class="col-3">
+                      <label class="form-label small">Orden</label>
+                      <input class="form-control form-control-sm" type="number" name="orden" value="{{ existente.orden if existente else 0 }}">
+                    </div>
+                    <div class="col-3">
+                      <label class="form-label small">Puntaje</label>
+                      <input class="form-control form-control-sm" type="number" step="0.01" min="0" name="puntaje" value="{{ existente.puntaje if existente and existente.puntaje is not none else pregunta.puntaje_max }}">
+                    </div>
+                    <div class="col-3">
+                      <label class="form-label small">Obligatoria</label>
+                      <select class="form-select form-select-sm" name="obligatorio">
+                        <option value="0" {% if not existente or not existente.obligatorio %}selected{% endif %}>No</option>
+                        <option value="1" {% if existente and existente.obligatorio %}selected{% endif %}>Si</option>
+                      </select>
+                    </div>
+                    <div class="col-3">
+                      <button class="btn btn-sm {% if existente and existente.activo %}btn-outline-success{% else %}btn-primary{% endif %} w-100" type="submit">
+                        {% if existente and existente.activo %}Actualizar{% else %}Agregar{% endif %}
+                      </button>
+                    </div>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-3">
+                  No hay preguntas disponibles con esos filtros.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

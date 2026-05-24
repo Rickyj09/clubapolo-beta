@@ -10,6 +10,7 @@ class PlantillaExamen(db.Model):
 
     disciplina = db.Column(db.String(30), nullable=False)
     nombre = db.Column(db.String(120), nullable=False)
+    descripcion = db.Column(db.Text, nullable=True)
 
     modo_seleccion = db.Column(
         db.Enum("FIJA", "ALEATORIA", name="pe_modo"),
@@ -17,6 +18,7 @@ class PlantillaExamen(db.Model):
         default="FIJA"
     )
     num_preguntas = db.Column(db.Integer, nullable=True)
+    puntaje_minimo = db.Column(db.Numeric(5, 2), nullable=True)
 
     activo = db.Column(db.Boolean, nullable=False, default=True)
 
@@ -50,6 +52,11 @@ class PlantillaPregunta(db.Model):
     )
 
     orden = db.Column(db.Integer, nullable=False, default=0)
+    puntaje = db.Column(db.Numeric(6, 2), nullable=True)
+    obligatorio = db.Column(db.Boolean, nullable=False, default=False)
+    activo = db.Column(db.Boolean, nullable=False, default=True)
+
+    pregunta = db.relationship("BancoPregunta", backref=db.backref("plantillas_links", lazy=True))
 
     __table_args__ = (
         db.UniqueConstraint("plantilla_id", "pregunta_id", name="uq_plantilla_pregunta"),

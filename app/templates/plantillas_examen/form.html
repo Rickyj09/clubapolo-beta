@@ -1,0 +1,90 @@
+{% extends "base_admin.html" %}
+{% block title %}Plantillas de examen{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <h3 class="mb-0">{% if item %}Editar plantilla{% else %}Nueva plantilla{% endif %}</h3>
+    <div class="text-muted small">Configura el encabezado y la forma de selección de preguntas.</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('plantillas_examen.index') }}">Volver</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="col-md-6">
+        <label class="form-label">Nombre</label>
+        <input class="form-control" name="nombre" value="{{ item.nombre if item else '' }}" required>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Disciplina</label>
+        <input class="form-control" name="disciplina" value="{{ item.disciplina if item else 'TAEKWONDO' }}" required>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Grado</label>
+        <select class="form-select" name="grado_id" required>
+          <option value="">-- Selecciona --</option>
+          {% for g in grados %}
+          <option value="{{ g.id }}" {% if item and item.grado_id == g.id %}selected{% endif %}>
+            {{ g.orden }} - {{ g.nombre }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-control" name="descripcion" rows="3" placeholder="Notas internas o alcance de la plantilla...">{{ item.descripcion if item else '' }}</textarea>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Modo de selección</label>
+        <select class="form-select" name="modo_seleccion">
+          {% set modo = item.modo_seleccion if item else 'FIJA' %}
+          <option value="FIJA" {% if modo == 'FIJA' %}selected{% endif %}>FIJA (usa preguntas asociadas)</option>
+          <option value="ALEATORIA" {% if modo == 'ALEATORIA' %}selected{% endif %}>ALEATORIA (toma preguntas del banco)</option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Cantidad de preguntas</label>
+        <input type="number"
+               min="0"
+               class="form-control"
+               name="num_preguntas"
+               value="{{ item.num_preguntas if item else 0 }}">
+        <div class="form-text">En modo fijo se recalcula con las preguntas activas asociadas.</div>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Puntaje mínimo</label>
+        <input type="number"
+               step="0.01"
+               min="0"
+               class="form-control"
+               name="puntaje_minimo"
+               value="{{ item.puntaje_minimo if item else '70.00' }}">
+      </div>
+
+      <div class="col-12">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="activo" value="1" {% if (item and item.activo) or not item %}checked{% endif %}>
+          <label class="form-check-label">Plantilla activa</label>
+        </div>
+      </div>
+
+      <div class="col-12 d-flex gap-2 flex-wrap">
+        <button class="btn btn-success" type="submit">Guardar plantilla</button>
+        {% if item %}
+        <a class="btn btn-outline-dark" href="{{ url_for('plantillas_examen.preguntas', plantilla_id=item.id) }}">Gestionar preguntas</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
