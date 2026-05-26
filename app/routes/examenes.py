@@ -1,6 +1,7 @@
 from datetime import datetime, date
 from decimal import Decimal
 import io
+import secrets
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, send_file
 from flask_login import login_required, current_user
@@ -127,9 +128,26 @@ def _get_or_create_examen_alumno(examen: Examen, ins: ExamenInscripcion) -> Exam
     return ea
 
 
-def _generate_questions(examen: Examen, ea: ExamenAlumno):
+def _ensure_cuestionario_token(inscripcion: ExamenInscripcion) -> str:
+    if inscripcion.cuestionario_token:
+        return inscripcion.cuestionario_token
+
+    while True:
+        token = secrets.token_urlsafe(32)
+        exists = ExamenInscripcion.query.filter_by(cuestionario_token=token).first()
+        if not exists:
+            inscripcion.cuestionario_token = token
+            return token
+
+
+def _reset_cuestionario_token(inscripcion: ExamenInscripcion) -> str:
+    inscripcion.cuestionario_token = None
+    return _ensure_cuestionario_token(inscripcion)
+
+
+def _generate_questions(examen: Examen, ea: ExamenAlumno, allow_partial: bool = False):
     if ea.preguntas and len(ea.preguntas) > 0:
-        return
+        return None
 
     if not examen.plantilla_id:
         raise ValueError("El examen no tiene plantilla asignada.")
@@ -166,8 +184,11 @@ def _generate_questions(examen: Examen, ea: ExamenAlumno):
     if n <= 0:
         raise ValueError("La plantilla no tiene preguntas configuradas.")
 
-    if len(preguntas) < n:
+    warning = None
+    if len(preguntas) < n and not allow_partial:
         raise ValueError(f"Hay {len(preguntas)} preguntas disponibles, pero la plantilla pide {n}.")
+    if len(preguntas) < n:
+        warning = f"La plantilla pide {n} preguntas, pero solo hay {len(preguntas)} disponibles."
 
     for idx, p in enumerate(preguntas, start=1):
         puntaje = None
@@ -182,6 +203,70 @@ def _generate_questions(examen: Examen, ea: ExamenAlumno):
             orden=idx,
             puntaje_asignado=puntaje if puntaje is not None else 0,
         ))
+
+    return warning
+
+
+def _get_preguntas_full(ea: ExamenAlumno):
+    preguntas = (
+        ExamenAlumnoPregunta.query
+        .filter_by(examen_alumno_id=ea.id)
+        .order_by(ExamenAlumnoPregunta.orden.asc())
+        .all()
+    )
+
+    preguntas_full = []
+    for eap in preguntas:
+        p = BancoPregunta.query.get(eap.pregunta_id)
+        opciones = []
+
+        if p and p.tipo in ("OPCION_MULTIPLE", "VERDADERO_FALSO"):
+            opciones = (
+                PreguntaOpcion.query
+                .filter_by(pregunta_id=p.id)
+                .order_by(PreguntaOpcion.orden.asc())
+                .all()
+            )
+
+        if p:
+            preguntas_full.append((eap, p, opciones))
+
+    return preguntas_full
+
+
+def _guardar_respuestas_teoria(preguntas_full, form, evaluador_id=None) -> float:
+    total_teoria = 0.0
+
+    for eap, p, opciones in preguntas_full:
+        key = f"preg_{eap.id}"
+
+        if p.tipo in ("OPCION_MULTIPLE", "VERDADERO_FALSO"):
+            opcion_id = form.get(key, type=int)
+            opcion_valida = next((op for op in opciones if op.id == opcion_id), None)
+            eap.respuesta_opcion_id = opcion_valida.id if opcion_valida else None
+            eap.respuesta_texto = None
+            eap.evaluador_id = evaluador_id
+
+            if opcion_valida and opcion_valida.es_correcta:
+                eap.es_correcta = True
+                eap.puntaje_asignado = float(p.puntaje_max or 0)
+            else:
+                eap.es_correcta = False
+                eap.puntaje_asignado = 0
+
+        else:
+            texto = (form.get(key) or "").strip()
+            eap.respuesta_texto = texto
+            eap.respuesta_opcion_id = None
+            eap.es_correcta = None
+            eap.evaluador_id = evaluador_id
+
+            puntaje_manual = form.get(f"punt_{eap.id}", type=float)
+            eap.puntaje_asignado = puntaje_manual if puntaje_manual is not None else 0
+
+        total_teoria += float(eap.puntaje_asignado or 0)
+
+    return total_teoria
 
 
 # =========================================================
@@ -549,6 +634,7 @@ def inscripciones(examen_id: int):
                 grado_objetivo_id=examen.grado_objetivo_id,
                 estado="INSCRITO",
             )
+            _ensure_cuestionario_token(ins)
             db.session.add(ins)
             db.session.commit()
             flash("Alumno inscrito.", "success")
@@ -587,13 +673,15 @@ def inscripciones(examen_id: int):
                     skipped_exists += 1
                     continue
 
-                db.session.add(ExamenInscripcion(
+                ins = ExamenInscripcion(
                     examen_id=examen.id,
                     alumno_id=a.id,
                     grado_actual_id=a.grado_id,
                     grado_objetivo_id=examen.grado_objetivo_id,
                     estado="INSCRITO",
-                ))
+                )
+                _ensure_cuestionario_token(ins)
+                db.session.add(ins)
                 added += 1
 
             db.session.commit()
@@ -656,6 +744,15 @@ def inscripciones(examen_id: int):
         .all()
     )
 
+    tokens_generados = False
+    for ins in inscripciones:
+        if not ins.cuestionario_token:
+            _ensure_cuestionario_token(ins)
+            tokens_generados = True
+
+    if tokens_generados:
+        db.session.commit()
+
     grados = Grado.query.filter_by(academia_id=academia_id).all()
     grados_map = {g.id: g for g in grados}
 
@@ -666,6 +763,157 @@ def inscripciones(examen_id: int):
         inscripciones=inscripciones,
         grados_map=grados_map,
         q=q,
+    )
+
+
+@examenes_bp.route("/inscripciones/<int:inscripcion_id>/reset-cuestionario", methods=["POST"])
+@login_required
+def reset_cuestionario(inscripcion_id: int):
+    academia_id = _academia_id_or_403()
+    if not academia_id:
+        return redirect(url_for("public.home"))
+
+    ins = (
+        ExamenInscripcion.query
+        .join(Examen)
+        .filter(
+            ExamenInscripcion.id == inscripcion_id,
+            Examen.academia_id == academia_id,
+        )
+        .first_or_404()
+    )
+
+    ea = ExamenAlumno.query.filter_by(examen_id=ins.examen_id, alumno_id=ins.alumno_id).first()
+    if ea:
+        for eap in ea.preguntas:
+            eap.respuesta_texto = None
+            eap.respuesta_opcion_id = None
+            eap.es_correcta = None
+            eap.puntaje_asignado = 0
+            eap.observacion = None
+        ea.score_auto = 0
+        ea.score_total = float(ea.score_manual or 0)
+        ea.estado = "EN_PROGRESO"
+        ea.finished_at = None
+
+    ins.nota_teoria = None
+    ins.cuestionario_estado = "PENDIENTE"
+    ins.cuestionario_respondido_at = None
+    _reset_cuestionario_token(ins)
+
+    db.session.commit()
+    flash("Cuestionario reseteado. Se generó un nuevo enlace.", "success")
+    return redirect(url_for("examenes.inscripciones", examen_id=ins.examen_id))
+
+
+@examenes_bp.route("/responder/<token>", methods=["GET", "POST"])
+def responder_cuestionario_publico(token: str):
+    ins = ExamenInscripcion.query.filter_by(cuestionario_token=token).first_or_404()
+    examen = Examen.query.get_or_404(ins.examen_id)
+    alumno = Alumno.query.get_or_404(ins.alumno_id)
+    grado_objetivo = Grado.query.get(ins.grado_objetivo_id)
+
+    if examen.estado in ("CERRADO", "PUBLICADO", "ANULADO"):
+        return render_template(
+            "examenes/responder_publico.html",
+            examen=examen,
+            ins=ins,
+            alumno=alumno,
+            grado_objetivo=grado_objetivo,
+            preguntas_full=[],
+            bloqueado=True,
+            mensaje="Este cuestionario ya no está disponible.",
+        )
+
+    if ins.cuestionario_expires_at and ins.cuestionario_expires_at < datetime.utcnow():
+        return render_template(
+            "examenes/responder_publico.html",
+            examen=examen,
+            ins=ins,
+            alumno=alumno,
+            grado_objetivo=grado_objetivo,
+            preguntas_full=[],
+            bloqueado=True,
+            mensaje="Este enlace de cuestionario expiró.",
+        )
+
+    if ins.cuestionario_estado == "RESPONDIDO":
+        return render_template(
+            "examenes/responder_publico.html",
+            examen=examen,
+            ins=ins,
+            alumno=alumno,
+            grado_objetivo=grado_objetivo,
+            preguntas_full=[],
+            bloqueado=True,
+            mensaje="El cuestionario ya fue enviado.",
+        )
+
+    if not examen.usa_teoria:
+        return render_template(
+            "examenes/responder_publico.html",
+            examen=examen,
+            ins=ins,
+            alumno=alumno,
+            grado_objetivo=grado_objetivo,
+            preguntas_full=[],
+            bloqueado=True,
+            mensaje="Este examen no tiene cuestionario teórico activo.",
+        )
+
+    ea = _get_or_create_examen_alumno(examen, ins)
+
+    try:
+        warning = _generate_questions(examen, ea, allow_partial=True)
+        if warning:
+            flash(warning, "warning")
+        db.session.flush()
+    except ValueError as exc:
+        db.session.rollback()
+        return render_template(
+            "examenes/responder_publico.html",
+            examen=examen,
+            ins=ins,
+            alumno=alumno,
+            grado_objetivo=grado_objetivo,
+            preguntas_full=[],
+            bloqueado=True,
+            mensaje=str(exc),
+        )
+
+    preguntas_full = _get_preguntas_full(ea)
+
+    if request.method == "POST":
+        if not preguntas_full:
+            flash("No hay preguntas para enviar.", "warning")
+            return redirect(url_for("examenes.responder_cuestionario_publico", token=token))
+
+        total_teoria = _guardar_respuestas_teoria(preguntas_full, request.form)
+        ahora = datetime.utcnow()
+
+        ins.nota_teoria = round(float(total_teoria), 2)
+        ins.cuestionario_estado = "RESPONDIDO"
+        ins.cuestionario_respondido_at = ahora
+        ins.updated_at = ahora
+
+        ea.score_auto = total_teoria
+        ea.score_total = total_teoria + float(ea.score_manual or 0)
+        ea.estado = "FINALIZADO"
+        ea.finished_at = ahora
+
+        db.session.commit()
+        return redirect(url_for("examenes.responder_cuestionario_publico", token=token))
+
+    db.session.commit()
+    return render_template(
+        "examenes/responder_publico.html",
+        examen=examen,
+        ins=ins,
+        alumno=alumno,
+        grado_objetivo=grado_objetivo,
+        preguntas_full=preguntas_full,
+        bloqueado=False,
+        mensaje=None,
     )
 
 
@@ -700,32 +948,8 @@ def iniciar_evaluacion(examen_id: int):
         flash("No hay inscritos.", "warning")
         return redirect(url_for("examenes.inscripciones", examen_id=examen.id))
 
-    base_q = (
-        BancoPregunta.query
-        .filter_by(
-            academia_id=academia_id,
-            grado_id=plantilla.grado_id,
-            activo=True,
-        )
-        .filter(BancoPregunta.disciplina == examen.disciplina)
-    )
-    
-
-    total_banco = base_q.count()
-    if total_banco == 0:
-        flash("No hay preguntas en el banco para la disciplina y grado de la plantilla.", "danger")
-        return redirect(url_for("examenes.inscripciones", examen_id=examen.id))
-
-    n = int(plantilla.num_preguntas or 0)
-    if n <= 0:
-        flash("La plantilla no tiene num_preguntas válido.", "danger")
-        return redirect(url_for("examenes.inscripciones", examen_id=examen.id))
-
-    if n > total_banco:
-        flash(f"La plantilla pide {n} preguntas pero el banco solo tiene {total_banco}.", "danger")
-        return redirect(url_for("examenes.inscripciones", examen_id=examen.id))
-
     creados = 0
+    warnings = []
 
     for ins in inscritos:
         ea = ExamenAlumno.query.filter_by(examen_id=examen.id, alumno_id=ins.alumno_id).first()
@@ -741,26 +965,22 @@ def iniciar_evaluacion(examen_id: int):
         if ea.preguntas and len(ea.preguntas) > 0:
             continue
 
-        if plantilla.modo_seleccion == "ALEATORIA":
-            preguntas = base_q.order_by(func.rand()).limit(n).all()
-        else:
-            preguntas = base_q.order_by(BancoPregunta.id.asc()).limit(n).all()
-
-        orden = 1
-        for p in preguntas:
-            db.session.add(ExamenAlumnoPregunta(
-                examen_alumno_id=ea.id,
-                pregunta_id=p.id,
-                orden=orden,
-            ))
-            orden += 1
-
+        try:
+            warning = _generate_questions(examen, ea, allow_partial=True)
+        except ValueError as exc:
+            db.session.rollback()
+            flash(str(exc), "danger")
+            return redirect(url_for("examenes.inscripciones", examen_id=examen.id))
+        if warning and warning not in warnings:
+            warnings.append(warning)
         creados += 1
 
     if examen.estado in ("BORRADOR", "ABIERTO"):
         examen.estado = "EN_EVALUACION"
 
     db.session.commit()
+    for warning in warnings:
+        flash(warning, "warning")
     flash(f"Evaluación iniciada. Se generaron preguntas para {creados} alumnos.", "success")
     return redirect(url_for("examenes.inscripciones", examen_id=examen.id))
 

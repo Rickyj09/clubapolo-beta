@@ -1,0 +1,106 @@
+{% extends "base_public.html" %}
+{% block title %}Cuestionario de examen{% endblock %}
+
+{% block content %}
+<main class="bg-light min-vh-100 py-4">
+  <div class="container" style="max-width: 760px;">
+    <div class="text-center mb-4">
+      <div class="fw-bold text-uppercase text-primary small">Apolo Gym</div>
+      <h1 class="h3 mb-1">Cuestionario teórico</h1>
+      <div class="text-muted">Examen #{{ examen.id }} · {{ examen.disciplina }}</div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <section class="bg-white border rounded-3 p-3 p-sm-4 shadow-sm mb-3">
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <div class="text-muted small">Alumno</div>
+          <div class="fw-semibold">{{ alumno.apellidos }} {{ alumno.nombres }}</div>
+        </div>
+        <div class="col-sm-6">
+          <div class="text-muted small">Grado objetivo</div>
+          <div class="fw-semibold">
+            {{ grado_objetivo.nombre if grado_objetivo else ('#' ~ ins.grado_objetivo_id) }}
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="text-muted small">Fecha</div>
+          <div>{{ examen.fecha or "-" }}</div>
+        </div>
+        <div class="col-sm-6">
+          <div class="text-muted small">Estado</div>
+          {% if ins.cuestionario_estado == "RESPONDIDO" %}
+            <span class="badge text-bg-success">RESPONDIDO</span>
+          {% else %}
+            <span class="badge text-bg-secondary">PENDIENTE</span>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    {% if bloqueado %}
+      <div class="alert alert-info shadow-sm">
+        <h2 class="h5 mb-1">{{ mensaje }}</h2>
+        {% if ins.cuestionario_respondido_at %}
+          <div class="small text-muted">Enviado: {{ ins.cuestionario_respondido_at }}</div>
+        {% endif %}
+      </div>
+    {% else %}
+      <form method="post" class="d-grid gap-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {% if preguntas_full|length == 0 %}
+          <div class="alert alert-warning mb-0">No hay preguntas disponibles para este cuestionario.</div>
+        {% else %}
+          {% for eap, p, opciones in preguntas_full %}
+            <section class="bg-white border rounded-3 p-3 p-sm-4 shadow-sm">
+              <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                <h2 class="h6 mb-0">{{ loop.index }}. {{ p.enunciado }}</h2>
+                <span class="badge text-bg-light border">{{ p.tipo.replace("_", " ") }}</span>
+              </div>
+
+              {% if p.tipo in ("OPCION_MULTIPLE", "VERDADERO_FALSO") %}
+                <div class="d-grid gap-2">
+                  {% for op in opciones %}
+                    <div class="form-check border rounded-2 p-3 ps-5">
+                      <input class="form-check-input"
+                             type="radio"
+                             name="preg_{{ eap.id }}"
+                             id="op_{{ eap.id }}_{{ op.id }}"
+                             value="{{ op.id }}"
+                             {% if eap.respuesta_opcion_id == op.id %}checked{% endif %}>
+                      <label class="form-check-label w-100" for="op_{{ eap.id }}_{{ op.id }}">
+                        {{ op.texto }}
+                      </label>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <textarea class="form-control"
+                          name="preg_{{ eap.id }}"
+                          rows="4"
+                          placeholder="Escribe tu respuesta...">{{ eap.respuesta_texto or "" }}</textarea>
+              {% endif %}
+            </section>
+          {% endfor %}
+
+          <button class="btn btn-primary btn-lg" type="submit"
+                  onclick="return confirm('¿Enviar cuestionario? Luego no podrás modificarlo.');">
+            Enviar cuestionario
+          </button>
+        {% endif %}
+      </form>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}

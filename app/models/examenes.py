@@ -123,6 +123,11 @@ class ExamenInscripcion(db.Model):
     nota_final = db.Column(db.Numeric(6, 2), nullable=True)
     comentario_general = db.Column(db.Text, nullable=True)
 
+    cuestionario_token = db.Column(db.String(128), unique=True, nullable=True)
+    cuestionario_estado = db.Column(db.String(20), nullable=False, default="PENDIENTE")
+    cuestionario_respondido_at = db.Column(db.DateTime, nullable=True)
+    cuestionario_expires_at = db.Column(db.DateTime, nullable=True)
+
     created_at = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
     updated_at = db.Column(db.DateTime, onupdate=db.func.now(), nullable=True)
 

@@ -167,8 +167,9 @@
                 <th>Actual</th>
                 <th>Objetivo</th>
                 <th>Estado</th>
+                <th>Cuestionario</th>
                 <th>Nota</th>
-                <th style="width:120px;"></th>
+                <th style="width:170px;"></th>
               </tr>
             </thead>
             <tbody>
@@ -206,6 +207,17 @@
                 </td>
 
                 <td>
+                  {% if i.cuestionario_estado == 'RESPONDIDO' %}
+                    <span class="badge text-bg-success">RESPONDIDO</span>
+                    {% if i.cuestionario_respondido_at %}
+                      <div class="small text-muted">{{ i.cuestionario_respondido_at }}</div>
+                    {% endif %}
+                  {% else %}
+                    <span class="badge text-bg-secondary">{{ i.cuestionario_estado or 'PENDIENTE' }}</span>
+                  {% endif %}
+                </td>
+
+                <td>
                   <strong>{{ '%.2f'|format((i.nota_final or 0)|float) }}</strong>
                 </td>
 
@@ -215,6 +227,27 @@
                      title="Evaluar">
                     <i class="bi bi-pencil-square"></i>
                   </a>
+
+                  {% if i.cuestionario_token %}
+                  <button class="btn btn-sm btn-outline-success js-copy-cuestionario"
+                          type="button"
+                          title="Copiar enlace cuestionario"
+                          data-copy-url="{{ url_for('examenes.responder_cuestionario_publico', token=i.cuestionario_token, _external=True) }}">
+                    <i class="bi bi-link-45deg"></i>
+                  </button>
+                  {% endif %}
+
+                  <form method="post"
+                        action="{{ url_for('examenes.reset_cuestionario', inscripcion_id=i.id) }}"
+                        class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-warning"
+                            type="submit"
+                            title="Resetear cuestionario"
+                            onclick="return confirm('¿Resetear el cuestionario y generar un nuevo enlace?');">
+                      <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                  </form>
 
                   {% if examen.estado in ('BORRADOR', 'ABIERTO') %}
                   <form method="post" class="d-inline">
@@ -235,7 +268,7 @@
 
               {% if inscripciones|length == 0 %}
               <tr>
-                <td colspan="6" class="text-muted text-center py-3">
+                <td colspan="7" class="text-muted text-center py-3">
                   Aún no hay inscritos.
                 </td>
               </tr>
@@ -256,4 +289,28 @@
 
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll(".js-copy-cuestionario").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const url = button.dataset.copyUrl;
+      try {
+        await navigator.clipboard.writeText(url);
+        const original = button.innerHTML;
+        button.innerHTML = '<i class="bi bi-check2"></i>';
+        button.classList.remove("btn-outline-success");
+        button.classList.add("btn-success");
+        setTimeout(() => {
+          button.innerHTML = original;
+          button.classList.add("btn-outline-success");
+          button.classList.remove("btn-success");
+        }, 1400);
+      } catch (error) {
+        window.prompt("Copia el enlace del cuestionario:", url);
+      }
+    });
+  });
+</script>
 {% endblock %}
